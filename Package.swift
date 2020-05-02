@@ -8,7 +8,6 @@ let package = Package(
     ],
     products: [
         .library(name: "LiquidAwsS3Driver", targets: ["LiquidAwsS3Driver"]),
-        .library(name: "LiquidAwsS3DriverDynamic", type: .dynamic, targets: ["LiquidAwsS3Driver"]),
     ],
     dependencies: [
         .package(url: "https://github.com/binarybirds/liquid-kit.git", from: "1.0.0"),
