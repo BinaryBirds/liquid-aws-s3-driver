@@ -1,13 +1,9 @@
 //
-//  File.swift
-//
+//  LiquidAwsS3StorageConfiguration.swift
+//  LiquidAwsS3Driver
 //
 //  Created by Tibor Bodecs on 2020. 04. 28..
 //
-
-import Foundation
-import LiquidKit
-import AWSS3
 
 struct LiquidAwsS3StorageConfiguration: FileStorageConfiguration {
     let key: String

@@ -1,12 +1,11 @@
 //
-//  File.swift
-//
+//  LiquidAwsS3Storage.swift
+//  LiquidAwsS3Driver
 //
 //  Created by Tibor Bodecs on 2020. 04. 28..
 //
-import Foundation
-import LiquidKit
-import NIO
+
+import struct Foundation.Data
 import AWSS3
 
 struct LiquidAwsS3Storage: FileStorage {

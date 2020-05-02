@@ -1,12 +1,9 @@
 //
-//  File.swift
-//  
+//  FileStorageConfigurationFactory.swift
+//  LiquidAwsS3Driver
 //
 //  Created by Tibor Bodecs on 2020. 04. 28..
 //
-
-import LiquidKit
-import AWSS3
 
 public extension FileStorageConfigurationFactory {
 
