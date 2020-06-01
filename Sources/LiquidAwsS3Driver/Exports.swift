@@ -6,5 +6,5 @@
 //
 
 @_exported import LiquidKit
-@_exported import enum AWSS3.Region
+@_exported import AWSS3
 @_exported import NIO
