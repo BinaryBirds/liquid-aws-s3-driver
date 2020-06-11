@@ -12,7 +12,7 @@ final class LiquidAwsS3DriverTests: XCTestCase {
     private func createTestStorage(withEndpoint endpoint: String? = nil) -> FileStorage {
         let eventLoop = EmbeddedEventLoop()
         let storages = FileStorages(fileio: .init(threadPool: .init(numberOfThreads: 1)))
-		storages.use(try! .awsS3(key: self.key, secret: self.secret, bucket: self.bucket, region: self.region, endpoint: endpoint), as: .awsS3)
+        storages.use(try! .awsS3(key: self.key, secret: self.secret, bucket: self.bucket, region: self.region, endpoint: endpoint), as: .awsS3)
         return storages.fileStorage(.awsS3, logger: .init(label: ""), on: eventLoop)!
     }
 

@@ -34,7 +34,7 @@ struct LiquidAwsS3Storage: FileStorage {
         if let endpointStr = self.configuration.endpoint, let endpointURL = URL(string: endpointStr) {
             return endpointURL.appendingPathComponent(self.configuration.bucket)
         } else {
-			return URL(string: "https://\(self.configuration.bucket).s3-\(self.configuration.region.rawValue).amazonaws.com")!
+            return URL(string: "https://\(self.configuration.bucket).s3-\(self.configuration.region.rawValue).amazonaws.com")!
         }
     }
 
