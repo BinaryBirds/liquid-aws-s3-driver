@@ -34,12 +34,7 @@ struct LiquidAwsS3Storage: FileStorage {
         if let endpointStr = self.configuration.endpoint, let endpointURL = URL(string: endpointStr) {
             return endpointURL.appendingPathComponent(self.configuration.bucket)
         } else {
-            var components = URLComponents()
-            components.scheme = "https"
-            components.host = "\(self.configuration.bucket).s3-\(self.configuration.region.rawValue).amazonaws.com"
-            // force unwrap is justified by the bucket naming validation step to init the configuration; there should be
-            // no possible bucket or region that would result in an invalid url.
-            return components.url!
+			return URL(string: "https://\(self.configuration.bucket).s3-\(self.configuration.region.rawValue).amazonaws.com")!
         }
     }
 
