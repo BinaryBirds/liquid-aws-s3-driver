@@ -7,7 +7,7 @@ final class LiquidAwsS3DriverTests: XCTestCase {
     let secret = "****"
     let bucket = "bucket"
     let region = Region.uswest1
-    let customEndpoint = "https://s3.wasabisys.com/"
+    let customEndpoint = "https://s3.custom.com/"
 
     private func createTestStorage(withEndpoint endpoint: String? = nil) -> FileStorage {
         let eventLoop = EmbeddedEventLoop()
