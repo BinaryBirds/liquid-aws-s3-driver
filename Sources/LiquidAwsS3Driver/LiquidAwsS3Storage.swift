@@ -15,17 +15,13 @@ struct LiquidAwsS3Storage: FileStorage {
     
     private var s3: S3
     
-    init(configuration: LiquidAwsS3StorageConfiguration, context: FileStorageContext) {
+    init(configuration: LiquidAwsS3StorageConfiguration, context: FileStorageContext, client: AWSClient) {
         self.configuration = configuration
         self.context = context
         let endpoint = configuration.endpoint ?? "https://s3.\(configuration.region.rawValue).amazonaws.com"
-        self.s3 = S3(accessKeyId: configuration.key,
-                     secretAccessKey: configuration.secret,
-                     region: configuration.region,
-                     endpoint: endpoint,
-                     middlewares: [])
+        self.s3 = S3(client: client, region: configuration.region, endpoint: endpoint)
     }
-    
+
     private var bucket: String {
         self.configuration.bucket
     }
