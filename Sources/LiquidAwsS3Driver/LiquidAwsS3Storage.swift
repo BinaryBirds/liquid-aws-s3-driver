@@ -5,7 +5,7 @@
 //  Created by Tibor Bodecs on 2020. 04. 28..
 //
 
-import struct Foundation.Data
+import Foundation
 import AWSS3
 
 struct LiquidAwsS3Storage: FileStorage {
@@ -26,12 +26,16 @@ struct LiquidAwsS3Storage: FileStorage {
         self.configuration.bucket
     }
 
-    private var publicUrl: String {
-        "https://\(self.configuration.bucket).s3-\(self.configuration.region.rawValue).amazonaws.com/"
+    private var publicUrl: URL {
+        if let endpointStr = self.configuration.endpoint, let endpointURL = URL(string: endpointStr) {
+            return endpointURL.appendingPathComponent(self.configuration.bucket)
+        } else {
+            return URL(string: "https://\(self.configuration.bucket).s3-\(self.configuration.region.rawValue).amazonaws.com")!
+        }
     }
 
     func resolve(key: String) -> String {
-        self.publicUrl + key
+        self.publicUrl.appendingPathComponent(key).absoluteString
     }
     
     func upload(key: String, data: Data) -> EventLoopFuture<String> {
@@ -44,7 +48,7 @@ struct LiquidAwsS3Storage: FileStorage {
 
         return self.s3.putObject(putRequest).map { output in
             print(output)
-            return self.publicUrl + key
+            return self.resolve(key: key)
         }
     }
 

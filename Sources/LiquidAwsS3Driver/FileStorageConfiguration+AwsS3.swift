@@ -11,11 +11,14 @@ public extension FileStorageConfigurationFactory {
                       secret: String,
                       bucket: String,
                       region: Region,
-                      endpoint: String? = nil) -> FileStorageConfigurationFactory {
-        .init { LiquidAwsS3StorageConfiguration(key: key,
-                                                secret: secret,
-                                                bucket: bucket,
-                                                region: region,
-                                                endpoint: endpoint) }
+                      endpoint: String? = nil) throws -> FileStorageConfigurationFactory {
+        let config = try LiquidAwsS3StorageConfiguration(key: key,
+                                                         secret: secret,
+                                                         bucket: bucket,
+                                                         region: region,
+                                                         endpoint: endpoint)
+        return .init {
+            return config
+        }
     }
 }
