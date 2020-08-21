@@ -5,6 +5,4 @@ Packages
 *.xcodeproj
 xcuserdata/
 .env.testing
-
-
 DerivedData/

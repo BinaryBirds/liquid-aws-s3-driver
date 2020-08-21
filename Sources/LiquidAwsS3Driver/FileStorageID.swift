@@ -6,6 +6,8 @@
 //
 
 public extension FileStorageID {
+    
+    /// identifier for the AWS S3 file storage
     static var awsS3: FileStorageID { .init(string: "aws-s3") }
 }
 

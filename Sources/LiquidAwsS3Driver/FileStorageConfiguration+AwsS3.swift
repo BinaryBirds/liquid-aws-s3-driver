@@ -7,18 +7,16 @@
 
 public extension FileStorageConfigurationFactory {
 
-    static func awsS3(key: String,
-                      secret: String,
-                      bucket: String,
+    /// creates a new Liquid FileStorageConfigurationFactory object using the provided S3 configuration 
+    static func awsS3(credentialProvider: CredentialProviderFactory = .default,
                       region: Region,
-                      endpoint: String? = nil) throws -> FileStorageConfigurationFactory {
-        let config = try LiquidAwsS3StorageConfiguration(key: key,
-                                                         secret: secret,
-                                                         bucket: bucket,
-                                                         region: region,
-                                                         endpoint: endpoint)
-        return .init {
-            return config
+                      bucket: S3.Bucket,
+                      endpoint: String? = nil) -> FileStorageConfigurationFactory {
+        .init {
+            LiquidAwsS3StorageConfiguration(credentialProvider: credentialProvider,
+                                            region: region,
+                                            bucket: bucket,
+                                            endpoint: endpoint)
         }
     }
 }

@@ -1,6 +1,6 @@
 # LiquidAwsS3Driver
 
-AWS S3 driver for the Liquid file storage.
+AWS S3 driver for the Liquid file storage, based on the [AWS SDK Swift](https://github.com/swift-aws/aws-sdk-swift) project.
 
 
 ## Usage example
@@ -32,7 +32,21 @@ let package = Package(
 )
 ```
 
-Driver configuration
+## Configuring credentials
+
+It is possible to configure credentials via multiple methods, by default the driver will try to load the credentials from the shared credential file.
+
+You can read more about the configuration in the AWS SDK Swift [readme](https://github.com/swift-aws/aws-sdk-swift).
+
+To get started with a default shared credential file, place the following values into the `~/.aws/credentials` file.
+
+```ini
+[default]
+aws_access_key_id = YOUR_AWS_ACCESS_KEY_ID
+aws_secret_access_key = YOUR_AWS_SECRET_ACCESS_KEY
+```
+
+## Driver configuration
 
 ```swift
 import Liquid
@@ -40,14 +54,11 @@ import LiquidAwsS3Driver
 
 public func configure(_ app: Application) throws {
 
-    app.fileStorages.use(.awsS3(key: Environment.awsKey,
-                                secret: Environment.awsSecret,
-                                bucket: "vaportestbucket",
-                                region: .uswest1), as: .awsS3)
+    app.fileStorages.use(.awsS3(region: .uswest1, bucket: "vaportestbucket"), as: .awsS3)
 }
 ```
 
-File upload example:
+## File upload example
 
 ```swift
 

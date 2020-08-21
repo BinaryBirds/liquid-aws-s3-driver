@@ -12,12 +12,16 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/binarybirds/liquid-kit.git", from: "1.0.0"),
         .package(url: "https://github.com/swift-aws/aws-sdk-swift.git", from: "5.0.0-alpha"),
+        .package(url: "https://github.com/vapor/vapor.git", from: "4.29.0"),
     ],
     targets: [
         .target(name: "LiquidAwsS3Driver", dependencies: [
             .product(name: "LiquidKit", package: "liquid-kit"),
             .product(name: "AWSS3", package: "aws-sdk-swift"),
         ]),
-        .testTarget(name: "LiquidAwsS3DriverTests", dependencies: ["LiquidAwsS3Driver"]),
+        .testTarget(name: "LiquidAwsS3DriverTests", dependencies: [
+            .target(name: "LiquidAwsS3Driver"),
+            .product(name: "Vapor", package: "vapor"),
+        ]),
     ]
 )
