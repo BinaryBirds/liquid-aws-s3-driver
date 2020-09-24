@@ -17,7 +17,7 @@ let package = Package(
     targets: [
         .target(name: "LiquidAwsS3Driver", dependencies: [
             .product(name: "LiquidKit", package: "liquid-kit"),
-			.product(name: "S3", package: "AWSSDKSwift"),
+            .product(name: "S3", package: "AWSSDKSwift"),
         ]),
         .testTarget(name: "LiquidAwsS3DriverTests", dependencies: [
             .target(name: "LiquidAwsS3Driver"),
