@@ -5,8 +5,6 @@
 //  Created by Tibor Bodecs on 2020. 04. 28..
 //
 
-import AWSS3
-
 struct LiquidAwsS3StorageConfiguration: FileStorageConfiguration {
 
     /// AWSClient credential provider object

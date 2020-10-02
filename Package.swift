@@ -1,4 +1,4 @@
-// swift-tools-version:5.2
+// swift-tools-version:5.3
 import PackageDescription
 
 let package = Package(
@@ -11,13 +11,13 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/binarybirds/liquid-kit.git", from: "1.0.0"),
-        .package(url: "https://github.com/swift-aws/aws-sdk-swift.git", from: "5.0.0-alpha"),
-        .package(url: "https://github.com/vapor/vapor.git", from: "4.29.0"),
+        .package(url: "https://github.com/vapor/vapor.git", from: "4.30.0"),
+        .package(url: "https://github.com/soto-project/soto.git", from: "5.0.0-beta.1")
     ],
     targets: [
         .target(name: "LiquidAwsS3Driver", dependencies: [
             .product(name: "LiquidKit", package: "liquid-kit"),
-            .product(name: "AWSS3", package: "aws-sdk-swift"),
+            .product(name: "SotoS3", package: "soto"),
         ]),
         .testTarget(name: "LiquidAwsS3DriverTests", dependencies: [
             .target(name: "LiquidAwsS3Driver"),

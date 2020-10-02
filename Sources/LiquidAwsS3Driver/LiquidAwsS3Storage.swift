@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import AWSS3
 
 /// AWS S3 File Storage implementation
 struct LiquidAwsS3Storage: FileStorage {

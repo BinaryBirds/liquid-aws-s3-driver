@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import AWSS3
 
 extension S3.Bucket: ExpressibleByStringLiteral {
 

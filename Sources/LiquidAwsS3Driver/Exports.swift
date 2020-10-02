@@ -6,5 +6,5 @@
 //
 
 @_exported import LiquidKit
-@_exported import AWSS3
+@_exported import SotoS3
 @_exported import NIO
