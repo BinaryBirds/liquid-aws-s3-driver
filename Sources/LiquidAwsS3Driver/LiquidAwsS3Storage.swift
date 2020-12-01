@@ -68,6 +68,16 @@ struct LiquidAwsS3Storage: FileStorage {
     func delete(key: String) -> EventLoopFuture<Void> {
         s3.deleteObject(S3.DeleteObjectRequest(bucket: bucket, key: key)).map { _ in }
     }
+
+    func exists(key: String) -> EventLoopFuture<Bool> {
+        s3.getObject(S3.GetObjectRequest(bucket: bucket, key: key)).map { _ in true }.flatMapError { err -> EventLoopFuture<Bool> in
+            if let err = err as? SotoS3.S3ErrorType, err == SotoS3.S3ErrorType.noSuchKey {
+                return s3.eventLoopGroup.next().makeSucceededFuture(false)
+            }
+            return s3.eventLoopGroup.next().makeFailedFuture(err)
+        }
+    }
+
 }
 
 
