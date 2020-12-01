@@ -20,7 +20,7 @@ struct LiquidAwsS3Storage: FileStorage {
         guard configuration.bucket.hasValidName() else {
             fatalError("Invalid bucket name")
         }
-        
+
         self.s3 = S3(client: client, region: configuration.region, endpoint: endpoint)
     }
 
@@ -41,26 +41,32 @@ struct LiquidAwsS3Storage: FileStorage {
     }
 
     /// resolves a file location using a key and the public endpoint URL string
-    func resolve(key: String) -> String {
-        self.publicEndpoint + "/" + key
-    }
+    func resolve(key: String) -> String { publicEndpoint + "/" + key }
     
-    /// Uploads a file using a key and a data object
+    /// Uploads a file using a key and a data object returning the resolved URL of the uploaded file
     /// https://docs.aws.amazon.com/general/latest/gr/s3.html
     func upload(key: String, data: Data) -> EventLoopFuture<String> {
-        let request = S3.PutObjectRequest(acl: .publicRead,
-                                          body: .data(data),
-                                          bucket: self.bucket,
-                                          contentLength: Int64(data.count),
-                                          key: key)
+        s3.putObject(S3.PutObjectRequest(acl: .publicRead, body: .data(data), bucket: bucket, contentLength: Int64(data.count), key: key)).map { _ in resolve(key: key) }
+    }
 
-        return self.s3.putObject(request).map { _ in self.resolve(key: key) }
+    /// Create a directory structure for a given key
+    func createDirectory(key: String) -> EventLoopFuture<Void> {
+        s3.putObject(S3.PutObjectRequest(acl: .publicRead, bucket: bucket, contentLength: 0, key: key)).map { _ in }
+    }
+
+    /// List objects under a given key
+    func list(key: String? = nil) -> EventLoopFuture<[String]> {
+        s3.listObjects(S3.ListObjectsRequest(bucket: bucket, prefix: key)).map { list -> [String] in
+            if let prefix = key {
+                return list.contents?.compactMap { $0.key?.split(separator: "/").dropFirst(prefix.split(separator: "/").count).map(String.init).first } ?? []
+            }
+            return Array(Set(list.contents?.compactMap { $0.key?.split(separator: "/").map(String.init).first } ?? []))
+        }
     }
 
     /// Removes a file resource using a key
     func delete(key: String) -> EventLoopFuture<Void> {
-        let request = S3.DeleteObjectRequest(bucket: self.bucket, key: key)
-        return self.s3.deleteObject(request).map { _ in }
+        s3.deleteObject(S3.DeleteObjectRequest(bucket: bucket, key: key)).map { _ in }
     }
 }
 

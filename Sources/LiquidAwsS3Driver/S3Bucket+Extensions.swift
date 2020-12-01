@@ -30,7 +30,7 @@ extension S3.Bucket {
         let valid = validStartEnd.union(CharacterSet(charactersIn: ".-"))
 
         guard
-            let name = self.name,
+            let name = name,
             name.count >= 3,
             name.count <= 63,
             name.unicodeScalars.allSatisfy({ valid.contains($0) }),

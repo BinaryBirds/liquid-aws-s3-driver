@@ -8,6 +8,8 @@ final class LiquidAwsS3DriverTests: XCTestCase {
         ("testValidBucketNames", testValidBucketNames),
         ("testInvalidBucketNames", testInvalidBucketNames),
         ("testUpload", testUpload),
+        ("testCreateDirectory", testCreateDirectory),
+        ("testList", testList),
     ]
     
     func testValidBucketNames() {
@@ -71,11 +73,35 @@ final class LiquidAwsS3DriverTests: XCTestCase {
     
     func testUpload() throws {
         let fs = try createTestStorage()
-        let key = "test-01"
+        
+        let key = "test-01.txt"
         let data = Data("file storage test 01".utf8)
         let res = try fs.upload(key: key, data: data).wait()
         let config = fs.context.configuration as! LiquidAwsS3StorageConfiguration
         XCTAssertEqual(res, "https://\(config.bucket.name!).s3-\(config.region.rawValue).amazonaws.com/\(key)")
+    }
+
+    func testCreateDirectory() throws {
+        let fs = try createTestStorage()
+        let key = "dir01/dir02/dir03"
+        let _ = try fs.createDirectory(key: key).wait()
+        let keys1 = try fs.list(key: "dir01").wait()
+        XCTAssertEqual(keys1, ["dir02"])
+        let keys2 = try fs.list(key: "dir01/dir02").wait()
+        XCTAssertEqual(keys2, ["dir03"])
+    }
+    
+    func testList() throws {
+        let fs = try createTestStorage()
+        let key1 = "dir02/dir03"
+        let _ = try fs.createDirectory(key: key1).wait()
+        
+        let key2 = "dir02/test-01.txt"
+        let data = Data("test".utf8)
+        _ = try fs.upload(key: key2, data: data).wait()
+        
+        let res = try fs.list(key: "dir02").wait()
+        XCTAssertEqual(res, ["dir03", "test-01.txt"])
     }
 
     /*

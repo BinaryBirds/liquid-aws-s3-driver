@@ -23,7 +23,7 @@ struct LiquidAwsS3StorageDriver: FileStorageDriver {
 
     /// creates a new AWS S3 based FileStorage object
     func makeStorage(with context: FileStorageContext) -> FileStorage {
-        LiquidAwsS3Storage(configuration: self.configuration, context: context, client: Self.client)
+        LiquidAwsS3Storage(configuration: configuration, context: context, client: Self.client)
     }
 
     /// shutdown the AWSClient if needed
