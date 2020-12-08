@@ -71,14 +71,19 @@ final class LiquidAwsS3DriverTests: XCTestCase {
         return storages.fileStorage(.awsS3, logger: .init(label: "[test-logger]"), on: eventLoop)!
     }
     
+    /// compares a result with an s3 url based on the bucket & region configuration and the given key
+    private func checkUrl(res: String, key: String, fs: FileStorage) -> Bool {
+        let config = fs.context.configuration as! LiquidAwsS3StorageConfiguration
+        return res == "https://\(config.bucket.name!).s3-\(config.region.rawValue).amazonaws.com/\(key)"
+    }
+    
     func testUpload() throws {
         let fs = try createTestStorage()
         
         let key = "test-01.txt"
         let data = Data("file storage test 01".utf8)
         let res = try fs.upload(key: key, data: data).wait()
-        let config = fs.context.configuration as! LiquidAwsS3StorageConfiguration
-        XCTAssertEqual(res, "https://\(config.bucket.name!).s3-\(config.region.rawValue).amazonaws.com/\(key)")
+        XCTAssertTrue(checkUrl(res: res, key: key, fs: fs))
     }
 
     func testCreateDirectory() throws {
@@ -127,6 +132,43 @@ final class LiquidAwsS3DriverTests: XCTestCase {
         let res = try fs.list(key: key2).wait()
         print(res)
         XCTAssertEqual(res, [])
+    }
+    
+    func testCopy() throws {
+        let fs = try createTestStorage()
+        let key = "test-02.txt"
+        let data = Data("file storage test 02".utf8)
+        
+        let res = try fs.upload(key: key, data: data).wait()
+        XCTAssertTrue(checkUrl(res: res, key: key, fs: fs))
+        
+        let dest = "test-03.txt"
+        _ = try fs.delete(key: dest).wait()
+        let res2 = try fs.copy(key: key, to: dest).wait()
+        XCTAssertTrue(checkUrl(res: res2, key: dest, fs: fs))
+        
+        let res3 = try fs.exists(key: key).wait()
+        XCTAssertTrue(res3)
+        let res4 = try fs.exists(key: dest).wait()
+        XCTAssertTrue(res4)
+    }
+    
+    func testMove() throws {
+        let fs = try createTestStorage()
+        let key = "test-04.txt"
+        let data = Data("file storage test 04".utf8)
+        let res = try fs.upload(key: key, data: data).wait()
+        XCTAssertTrue(checkUrl(res: res, key: key, fs: fs))
+        
+        let dest = "test-05.txt"
+        _ = try fs.delete(key: dest).wait()
+        let res2 = try fs.move(key: key, to: dest).wait()
+        XCTAssertTrue(checkUrl(res: res2, key: dest, fs: fs))
+        
+        let res3 = try fs.exists(key: key).wait()
+        XCTAssertFalse(res3)
+        let res4 = try fs.exists(key: dest).wait()
+        XCTAssertTrue(res4)
     }
 
     /*

@@ -9,7 +9,7 @@ import Foundation
 
 /// AWS S3 File Storage implementation
 struct LiquidAwsS3Storage: FileStorage {
-
+    
     let configuration: LiquidAwsS3StorageConfiguration
     let context: FileStorageContext
 
@@ -61,6 +61,24 @@ struct LiquidAwsS3Storage: FileStorage {
                 return list.contents?.compactMap { $0.key?.split(separator: "/").dropFirst(prefix.split(separator: "/").count).map(String.init).first } ?? []
             }
             return Array(Set(list.contents?.compactMap { $0.key?.split(separator: "/").map(String.init).first } ?? []))
+        }
+    }
+    
+    func copy(key source: String, to destination: String) -> EventLoopFuture<String> {
+        exists(key: source).flatMap { exists in
+            guard exists else {
+                return s3.eventLoopGroup.next().makeFailedFuture(LiquidError.keyNotExists)
+            }
+            return s3.copyObject(S3.CopyObjectRequest(acl: .publicRead, bucket: bucket, copySource: bucket + "/" + source, key: destination)).map { _ in resolve(key: destination) }
+        }
+    }
+    
+    func move(key source: String, to destination: String) -> EventLoopFuture<String> {
+        exists(key: source).flatMap { exists in
+            guard exists else {
+                return s3.eventLoopGroup.next().makeFailedFuture(LiquidError.keyNotExists)
+            }
+            return copy(key: source, to: destination).flatMap { key in delete(key: source).map { key } }
         }
     }
 
