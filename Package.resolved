@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/soto-project/soto.git",
         "state": {
           "branch": null,
-          "revision": "48b9b57427c7b3538055ae3ca26c7f95977bd813",
-          "version": "5.0.0-rc.1.0"
+          "revision": "512845f7383a171597cf79ffa614b63bad4adda4",
+          "version": "5.0.0"
         }
       },
       {
@@ -60,8 +60,8 @@
         "repositoryURL": "https://github.com/soto-project/soto-core.git",
         "state": {
           "branch": null,
-          "revision": "3fdebac0c8f949aebc9da1138e80864fff17c426",
-          "version": "5.0.0-rc.1.0"
+          "revision": "b24d8687c85b1c678d02077f430ec36b7bcf066a",
+          "version": "5.0.0"
         }
       },
       {
@@ -123,8 +123,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-http2.git",
         "state": {
           "branch": null,
-          "revision": "2f3c6e742317cdf2bbe89ac802b6187b1420e0f3",
-          "version": "1.16.0"
+          "revision": "f4b49cbed134db2c5132ffba1876e2814845a569",
+          "version": "1.16.1"
         }
       },
       {

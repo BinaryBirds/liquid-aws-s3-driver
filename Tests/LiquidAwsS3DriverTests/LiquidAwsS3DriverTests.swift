@@ -116,6 +116,18 @@ final class LiquidAwsS3DriverTests: XCTestCase {
         let exists2 = try fs.exists(key: key2).wait()
         XCTAssertTrue(exists2)
     }
+    
+    func testListFile() throws {
+        let fs = try createTestStorage()
+
+        let key2 = "dir04/test-01.txt"
+        let data = Data("test".utf8)
+        _ = try fs.upload(key: key2, data: data).wait()
+        
+        let res = try fs.list(key: key2).wait()
+        print(res)
+        XCTAssertEqual(res, [])
+    }
 
     /*
     func testUploadWithCustomEndpoint() throws {
