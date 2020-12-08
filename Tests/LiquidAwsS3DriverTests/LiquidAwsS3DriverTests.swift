@@ -143,7 +143,6 @@ final class LiquidAwsS3DriverTests: XCTestCase {
         XCTAssertTrue(checkUrl(res: res, key: key, fs: fs))
         
         let dest = "test-03.txt"
-        _ = try fs.delete(key: dest).wait()
         let res2 = try fs.copy(key: key, to: dest).wait()
         XCTAssertTrue(checkUrl(res: res2, key: dest, fs: fs))
         
@@ -161,7 +160,6 @@ final class LiquidAwsS3DriverTests: XCTestCase {
         XCTAssertTrue(checkUrl(res: res, key: key, fs: fs))
         
         let dest = "test-05.txt"
-        _ = try fs.delete(key: dest).wait()
         let res2 = try fs.move(key: key, to: dest).wait()
         XCTAssertTrue(checkUrl(res: res2, key: dest, fs: fs))
         
