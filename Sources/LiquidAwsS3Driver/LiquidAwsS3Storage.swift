@@ -39,6 +39,10 @@ struct LiquidAwsS3Storage: FileStorage {
         if let customEndpoint = configuration.endpoint {
             return customEndpoint + "/" + bucket
         }
+        /// http://www.wryway.com/blog/aws-s3-url-styles/
+        if region == "us-east-1" {
+            return "https://\(bucket).s3.amazonaws.com"
+        }
         return "https://\(bucket).s3-\(region).amazonaws.com"
     }
     

@@ -5,9 +5,7 @@ final class LiquidAwsS3DriverTests: XCTestCase {
     
     static var storages: FileStorages!
 
-    override class func setUp() {
-        super.setUp()
-
+    static var dotenv: [String: String] = {
         let projectRoot = "/" + #file.split(separator: "/").dropLast(3).joined(separator: "/")
         let filePath = projectRoot + "/.env.testing"
         guard let file = try? String(contentsOf: URL(fileURLWithPath: filePath)) else {
@@ -24,24 +22,30 @@ final class LiquidAwsS3DriverTests: XCTestCase {
             }
             dotenv[key] = value
         }
+        return dotenv
+    }()
+    
+    override class func setUp() {
+        super.setUp()
 
-        let bucketValue = dotenv["BUCKET"] ?? ""
-        let regionValue = dotenv["REGION"] ?? ""
-        let regionType: Region? = Region(rawValue: regionValue)
-        
-        guard let region = regionType else {
-            fatalError("Invalid `.env.testing` configuration.")
+        guard let bucketValue = dotenv["BUCKET"] else {
+            fatalError("Missing BUCKET env variable")
         }
+        guard let regionValue = dotenv["REGION"] else {
+            fatalError("Missing REGION env variable")
+        }
+        let endpoint = dotenv["ENDPOINT"]
+        let region = Region(rawValue: regionValue)
         let bucket = S3.Bucket(name: bucketValue)
         guard bucket.hasValidName() else {
-            fatalError("Invalid Bucket name in the config file.")
+            fatalError("Invalid BUCKET name")
         }
 
         let pool = NIOThreadPool(numberOfThreads: 1)
         pool.start()
         let fileio = NonBlockingFileIO(threadPool: pool)
         storages = FileStorages(fileio: fileio)
-        storages.use(.awsS3(region: region, bucket: bucket), as: .awsS3)
+        storages.use(.awsS3(region: region, bucket: bucket, endpoint: endpoint), as: .awsS3)
         storages.default(to: .awsS3)
     }
 
@@ -56,11 +60,6 @@ final class LiquidAwsS3DriverTests: XCTestCase {
     private var fs: FileStorage {
         let elg = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         return Self.storages.fileStorage(.awsS3, logger: .init(label: "[test-logger]"), on: elg.next())!
-    }
-    /// compares a result with an s3 url based on the bucket & region configuration and the given key
-    private func checkUrl(res: String, key: String, fs: FileStorage) -> Bool {
-        let config = fs.context.configuration as! LiquidAwsS3StorageConfiguration
-        return res == "https://\(config.bucket.name!).s3-\(config.region.rawValue).amazonaws.com/\(key)"
     }
 
     // MARK: - tests
@@ -99,7 +98,7 @@ final class LiquidAwsS3DriverTests: XCTestCase {
         let key = "test-01.txt"
         let data = Data("file storage test 01".utf8)
         let res = try fs.upload(key: key, data: data).wait()
-        XCTAssertTrue(checkUrl(res: res, key: key, fs: fs))
+        XCTAssertEqual(res, fs.resolve(key: key))
     }
 
     func testCreateDirectory() throws {
@@ -147,11 +146,11 @@ final class LiquidAwsS3DriverTests: XCTestCase {
         let data = Data("file storage test 02".utf8)
         
         let res = try fs.upload(key: key, data: data).wait()
-        XCTAssertTrue(checkUrl(res: res, key: key, fs: fs))
+        XCTAssertEqual(res, fs.resolve(key: key))
         
         let dest = "test-03.txt"
         let res2 = try fs.copy(key: key, to: dest).wait()
-        XCTAssertTrue(checkUrl(res: res2, key: dest, fs: fs))
+        XCTAssertEqual(res2, fs.resolve(key: dest))
         
         let res3 = try fs.exists(key: key).wait()
         XCTAssertTrue(res3)
@@ -163,27 +162,16 @@ final class LiquidAwsS3DriverTests: XCTestCase {
         let key = "test-04.txt"
         let data = Data("file storage test 04".utf8)
         let res = try fs.upload(key: key, data: data).wait()
-        XCTAssertTrue(checkUrl(res: res, key: key, fs: fs))
+        XCTAssertEqual(res, fs.resolve(key: key))
         
         let dest = "test-05.txt"
         let res2 = try fs.move(key: key, to: dest).wait()
-        XCTAssertTrue(checkUrl(res: res2, key: dest, fs: fs))
+        XCTAssertEqual(res2, fs.resolve(key: dest))
         
         let res3 = try fs.exists(key: key).wait()
         XCTAssertFalse(res3)
         let res4 = try fs.exists(key: dest).wait()
         XCTAssertTrue(res4)
     }
-
-    /*
-    func testUploadWithCustomEndpoint() throws {
-        let fs = try createTestStorage(using: "https://s3.custom.com/")
-        let key = "test-02"
-        let data = Data("file storage test 02".utf8)
-        let res = try fs.upload(key: key, data: data).wait()
-        let config = fs.context.configuration as! LiquidAwsS3StorageConfiguration
-        XCTAssertEqual(res, "\(config.endpoint!)\(config.bucket.name!)/\(key)")
-    }
-    // */
 
 }
