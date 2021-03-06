@@ -2,7 +2,7 @@
 
 AWS S3 driver implementation for the [LiquidKit](https://github.com/BinaryBirds/liquid-kit) file storage solution, based on the [Soto for AWS](https://github.com/soto-project/soto) project.
 
-LiquidKit and the local driver is also compatible with Vapor 4 through the [Liquid](https://github.com/BinaryBirds/liquid) repository, that contains Vapor specific extensions.
+LiquidKit and the AWS S3 driver is also compatible with Vapor 4 through the [Liquid](https://github.com/BinaryBirds/liquid) repository, that contains Vapor specific extensions.
 
 
 ## Key resolution for S3 objects
@@ -61,7 +61,7 @@ let package = Package(
     targets: [
         .target(name: "App", dependencies: [
             .product(name: "Liquid", package: "liquid"),
-            .product(name: "LiquidLocalDriver", package: "liquid-local-driver"),
+            .product(name: "LiquidAwsS3Driver", package: "liquid-aws-s3-driver"),
         ]),
     ]
 )
