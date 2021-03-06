@@ -1,16 +1,7 @@
 import XCTest
-import Vapor
 @testable import LiquidAwsS3Driver
 
 final class LiquidAwsS3DriverTests: XCTestCase {
-    
-    static var allTests = [
-        ("testValidBucketNames", testValidBucketNames),
-        ("testInvalidBucketNames", testInvalidBucketNames),
-        ("testUpload", testUpload),
-        ("testCreateDirectory", testCreateDirectory),
-        ("testList", testList),
-    ]
     
     func testValidBucketNames() {
         [
@@ -47,14 +38,25 @@ final class LiquidAwsS3DriverTests: XCTestCase {
         let pool = NIOThreadPool(numberOfThreads: 1)
         pool.start()
 
+        let fileio = NonBlockingFileIO(threadPool: pool)
+
         let projectRoot = "/" + #file.split(separator: "/").dropLast(3).joined(separator: "/")
         let filePath = projectRoot + "/.env.testing"
+        let file = try String(contentsOf: URL(fileURLWithPath: filePath))
+        var dotenv: [String: String] = [:]
+        for line in file.components(separatedBy: "\n") {
+            let parts = line.components(separatedBy: "=")
+            guard
+                let key = parts.first?.replacingOccurrences(of: "\"", with: ""),
+                let value = parts.last?.replacingOccurrences(of: "\"", with: "")
+            else {
+                continue
+            }
+            dotenv[key] = value
+        }
 
-        let fileio = NonBlockingFileIO(threadPool: pool)
-        let file = try DotEnvFile.read(path: filePath, fileio: fileio, on: elg.next()).wait()
-        
-        let bucketValue = file.lines.first { $0.key == "BUCKET" }.map { $0.value } ?? ""
-        let regionValue = file.lines.first { $0.key == "REGION" }.map { $0.value } ?? ""
+        let bucketValue = dotenv["BUCKET"] ?? ""
+        let regionValue = dotenv["REGION"] ?? ""
         let regionType: Region? = Region(rawValue: regionValue)
         
         guard let region = regionType else {
@@ -64,11 +66,10 @@ final class LiquidAwsS3DriverTests: XCTestCase {
         guard bucket.hasValidName() else {
             fatalError("Invalid Bucket name in the config file.")
         }
-        
-        let eventLoop = EmbeddedEventLoop()
-        let storages = FileStorages(fileio: .init(threadPool: .init(numberOfThreads: 1)))
+
+        let storages = FileStorages(fileio: fileio)
         storages.use(.awsS3(region: region, bucket: bucket, endpoint: endpoint), as: .awsS3)
-        return storages.fileStorage(.awsS3, logger: .init(label: "[test-logger]"), on: eventLoop)!
+        return storages.fileStorage(.awsS3, logger: .init(label: "[test-logger]"), on: elg.next())!
     }
     
     /// compares a result with an s3 url based on the bucket & region configuration and the given key

@@ -23,6 +23,8 @@ struct LiquidAwsS3Storage: FileStorage {
 
         self.s3 = S3(client: client, region: configuration.region, endpoint: endpoint)
     }
+    
+    // MARK: - private
 
     /// private s3 reference
     private var s3: S3!
@@ -39,6 +41,8 @@ struct LiquidAwsS3Storage: FileStorage {
         }
         return "https://\(bucket).s3-\(region).amazonaws.com"
     }
+    
+    // MARK: - api
 
     /// resolves a file location using a key and the public endpoint URL string
     func resolve(key: String) -> String { publicEndpoint + "/" + key }
@@ -95,7 +99,6 @@ struct LiquidAwsS3Storage: FileStorage {
             return s3.eventLoopGroup.next().makeFailedFuture(err)
         }
     }
-
 }
 
 

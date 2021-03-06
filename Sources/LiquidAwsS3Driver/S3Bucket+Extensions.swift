@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  
+//  S3Bucket+Extensions.swift
+//  LiquidAwsS3Driver
 //
 //  Created by Tibor Bodecs on 2020. 08. 21..
 //

@@ -1,38 +1,31 @@
 # LiquidAwsS3Driver
 
-AWS S3 driver for the Liquid file storage, based on the [Soto for AWS](https://github.com/soto-project/soto) project.
+AWS S3 driver implementation for the [LiquidKit](https://github.com/BinaryBirds/liquid-kit) file storage solution, based on the [Soto for AWS](https://github.com/soto-project/soto) project.
+
+LiquidKit and the local driver is also compatible with Vapor 4 through the [Liquid](https://github.com/BinaryBirds/liquid) repository, that contains Vapor specific extensions.
 
 
-## Usage example
+## Key resolution for S3 objects
 
-Add dependencies:
+Keys are being resolved using a the bucket and the region name, with the standard AWS structure:
 
-```swift
-// swift-tools-version:5.3
-import PackageDescription
+- url = "https://" + [bucket name] + ".s3-" + [region name] + "amazonaws.com/" + [key]
 
-let package = Package(
-    name: "myProject",
-    platforms: [
-       .macOS(.v10_15)
-    ],
-    dependencies: [
-        // 💧 A server-side Swift web framework.
-        .package(url: "https://github.com/vapor/vapor.git", from: "4.30.0"),
-        .package(url: "https://github.com/binarybirds/liquid.git", from: "1.0.0"),
-        .package(url: "https://github.com/binarybirds/liquid-aws-s3-driver.git", from: "1.0.0"),
-    ],
-    targets: [
-        .target(name: "App", dependencies: [
-            .product(name: "Vapor", package: "vapor"),
-            .product(name: "Liquid", package: "liquid"),
-            .product(name: "LiquidAwsS3Driver", package: "liquid-aws-s3-driver"),
-        ]),
-    ]
-)
-```
+Alternatively you can use a custom endpoint. In that case the endpoint will be extended with the bucket name and key.
 
-## Configuring credentials
+- url = [custom endpoint] + [bucket name] + [key]
+
+
+e.g. 
+
+- bucketName = "testbucket"
+- regionName = "us-west-1"
+- key = "test.txt"
+
+- resolvedUrl = "https://testbucket.s3-us-west-1.amazonaws.com/test.txt"
+
+
+## Credentials
 
 It is possible to configure credentials via multiple methods, by default the driver will try to load the credentials from the shared credential file.
 
@@ -46,39 +39,57 @@ aws_access_key_id = YOUR_AWS_ACCESS_KEY_ID
 aws_secret_access_key = YOUR_AWS_SECRET_ACCESS_KEY
 ```
 
-## Driver configuration
+
+## Usage with SwiftNIO
+
+
+Add the required dependencies using SPM:
 
 ```swift
-import Liquid
-import LiquidAwsS3Driver
+// swift-tools-version:5.3
+import PackageDescription
 
-public func configure(_ app: Application) throws {
-
-    app.fileStorages.use(.awsS3(region: .uswest1, bucket: "vaportestbucket"), as: .awsS3)
-}
+let package = Package(
+    name: "myProject",
+    platforms: [
+       .macOS(.v10_15)
+    ],
+    dependencies: [
+        .package(url: "https://github.com/binarybirds/liquid", from: "1.2.0"),
+        .package(url: "https://github.com/binarybirds/liquid-aws-s3-driver", from: "1.2.0"),
+    ],
+    targets: [
+        .target(name: "App", dependencies: [
+            .product(name: "Liquid", package: "liquid"),
+            .product(name: "LiquidLocalDriver", package: "liquid-local-driver"),
+        ]),
+    ]
+)
 ```
 
-## File upload example
+A basic usage example with SwiftNIO:
 
 ```swift
+/// setup thread pool
+let elg = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+let pool = NIOThreadPool(numberOfThreads: 1)
+pool.start()
 
-func testUpload(req: Request) -> EventLoopFuture<String> {
-    let data: Data! = //...
-    let key = "path/to/my/file.txt"
-    return req.fs.upload(key: key, data: data)
-    // returns the full public url of the uploaded image
-}
+/// create fs  
+let fileio = NonBlockingFileIO(threadPool: pool)
+let storages = FileStorages(fileio: fileio)
+storages.use(.awsS3(region: .uswest1, bucket: "testbucket"), as: .awsS3)
+let fs = storages.fileStorage(.awsS3, logger: .init(label: "[test-logger]"), on: elg.next())!
 
-// resolve public url based on a key
-// func resolve(key: String) -> String
-req.fs.resolve(key: myImageKey)
+/// test file upload
+let key = "test.txt"
+let data = Data("file storage test".utf8)
+let res = try fs.upload(key: key, data: data).wait()
 
-// delete file based on a key
-// func delete(key: String) -> EventLoopFuture<Void>
-req.fs.delete(key: myImageKey)
+/// https://testbucket.s3-us-west-1.amazonaws.com/test.txt
+let url = req.fs.resolve(key: key)
+
+/// delete key
+try req.fs.delete(key: key).wait()
+
 ```
-
-
-## License
-
-[WTFPL](LICENSE) - Do what the fuck you want to.

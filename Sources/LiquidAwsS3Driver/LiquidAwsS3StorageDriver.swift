@@ -5,8 +5,6 @@
 //  Created by Tibor Bodecs on 2020. 04. 28..
 //
 
-import Foundation
-
 /// the storage driver is responsible for creating the AWS S3 storage object with the given configuration and the underlying AWS Client with the right credentials
 struct LiquidAwsS3StorageDriver: FileStorageDriver {
 
