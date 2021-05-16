@@ -7,6 +7,11 @@
 
 struct LiquidAwsS3StorageConfiguration: FileStorageConfiguration {
 
+	enum Kind {
+		case awsS3
+		case scalewayS3
+	}
+	
     /// AWSClient credential provider object
     let credentialProvider: CredentialProviderFactory
     
@@ -18,6 +23,9 @@ struct LiquidAwsS3StorageConfiguration: FileStorageConfiguration {
     
     /// custom endpoint for S3
     let endpoint: String?
+	
+	/// S3 provider
+	let kind: Kind
 
     /// creates a new FileStrorageDriver using the AWS S3 configuration object
     func makeDriver(for databases: FileStorages) -> FileStorageDriver {
