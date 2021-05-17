@@ -16,7 +16,21 @@ public extension FileStorageConfigurationFactory {
             LiquidAwsS3StorageConfiguration(credentialProvider: credentialProvider,
                                             region: region,
                                             bucket: bucket,
-                                            endpoint: endpoint)
+											endpoint: endpoint,
+											kind: .awsS3)
         }
     }
+
+	static func scalewayS3(credentialProvider: CredentialProviderFactory = .default,
+						   region: Region,
+						   bucket: S3.Bucket,
+						   endpoint: String? = nil) -> FileStorageConfigurationFactory {
+		.init {
+			LiquidAwsS3StorageConfiguration(credentialProvider: credentialProvider,
+											region: region,
+											bucket: bucket,
+											endpoint: endpoint,
+											kind: .scalewayS3)
+		}
+	}
 }
