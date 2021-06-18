@@ -110,6 +110,15 @@ struct LiquidAwsS3Storage: FileStorage {
         }
     }
 
+    func getObject(key source: String) -> EventLoopFuture<Data?> {
+        exists(key: source).flatMap { exists in
+            guard exists else {
+                return s3.eventLoopGroup.next().makeFailedFuture(LiquidError.keyNotExists)
+            }
+            return s3.getObject(S3.GetObjectRequest(bucket: bucket, key: source)).map { $0.body?.asData() }
+        }
+    }
+
     /// Removes a file resource using a key
     func delete(key: String) -> EventLoopFuture<Void> {
         s3.deleteObject(S3.DeleteObjectRequest(bucket: bucket, key: key)).map { _ in }

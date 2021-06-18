@@ -174,4 +174,14 @@ final class LiquidAwsS3DriverTests: XCTestCase {
         XCTAssertTrue(res4)
     }
 
+    func testGetObject() throws {
+        let key = "test-04.txt"
+        let data = Data("file storage test 04".utf8)
+        let res = try fs.upload(key: key, data: data).wait()
+        XCTAssertEqual(res, fs.resolve(key: key))
+
+        let obj = try fs.getObject(key: key).wait()
+        XCTAssertNotNil(obj)
+        XCTAssertEqual(obj, data)
+    }
 }
