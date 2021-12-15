@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "liquid-aws-s3-driver",
     platforms: [
-       .macOS(.v12)
+       .macOS(.v10_15)
     ],
     products: [
         .library(name: "LiquidAwsS3Driver", targets: ["LiquidAwsS3Driver"]),
