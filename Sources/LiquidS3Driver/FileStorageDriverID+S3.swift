@@ -1,6 +1,6 @@
 //
-//  FileStorageID.swift
-//  LiquidAwsS3Driver
+//  FileStorageDriverID.swift
+//  LiquidS3Driver
 //
 //  Created by Tibor Bodecs on 2020. 05. 02..
 //

@@ -1,6 +1,6 @@
 //
-//  LiquidAwsS3StorageConfiguration.swift
-//  LiquidAwsS3Driver
+//  S3FileStorageDriverConfiguration.swift
+//  LiquidS3Driver
 //
 //  Created by Tibor Bodecs on 2020. 04. 28..
 //
@@ -10,21 +10,24 @@ import SotoS3
 
 struct S3FileStorageDriverConfiguration: FileStorageDriverConfiguration {
 
-    /// AWSClient credential provider object
+    /// Credential provider object
     let credentialProvider: CredentialProviderFactory
     
-    /// AWS Region
+    /// Region
     let region: Region
     
-    /// S3 Bucket representation
+    /// Bucket
     let bucket: S3.Bucket
     
-    /// custom endpoint
+    /// Custom endpoint
     let endpoint: String?
 
-    /// custom public endpoint
+    /// Custom public endpoint
     let publicEndpoint: String?
 
+    ///
+    /// Creates the driver factory
+    ///
     func makeDriverFactory(
         using storage: FileStorageDriverFactoryStorage
     ) -> FileStorageDriverFactory {

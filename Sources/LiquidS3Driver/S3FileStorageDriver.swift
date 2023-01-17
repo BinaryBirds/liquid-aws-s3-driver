@@ -1,6 +1,6 @@
 //
-//  LiquidAwsS3Storage.swift
-//  LiquidAwsS3Driver
+//  S3FileStorageDriver.swift
+//  LiquidS3Driver
 //
 //  Created by Tibor Bodecs on 2020. 04. 28..
 //
@@ -9,7 +9,9 @@ import Foundation
 import LiquidKit
 import SotoS3
 
-/// AWS S3 File Storage implementation
+///
+/// S3 File Storage implementation
+/// 
 struct S3FileStorageDriver {
 	
     let s3: S3
@@ -23,7 +25,6 @@ struct S3FileStorageDriver {
         self.context = context
     }
 }
-
 
 private extension S3FileStorageDriver {
 
@@ -99,7 +100,7 @@ extension S3FileStorageDriver: FileStorageDriver {
     }
 
     ///
-    /// List objects under a given key
+    /// List objects under a given key (returning the relative keys)
     ///
     func list(
         key: String? = nil
@@ -112,13 +113,19 @@ extension S3FileStorageDriver: FileStorageDriver {
             logger: context.logger,
             on: context.eventLoop
         )
+        let keys = (list.contents ?? []).map(\.key).compactMap { $0 }
+        var dropCount = 0
         if let prefix = key {
-            return list.contents?.compactMap { $0.key?.split(separator: "/").dropFirst(prefix.split(separator: "/").count).map(String.init).first } ?? []
+            dropCount = prefix.split(separator: "/").count
         }
-        return Array(Set(list.contents?.compactMap { $0.key?.split(separator: "/").map(String.init).first } ?? []))
-        
+        return keys.compactMap {
+            $0.split(separator: "/").dropFirst(dropCount).map(String.init).first
+        }
     }
     
+    ///
+    /// Copy existing object to a new key
+    ///
     func copy(
         key source: String,
         to destination: String
@@ -140,6 +147,9 @@ extension S3FileStorageDriver: FileStorageDriver {
         return resolve(key: destination)
     }
     
+    ///
+    /// Move existing object to a new key
+    ///
     func move(
         key source: String,
         to destination: String
@@ -154,6 +164,9 @@ extension S3FileStorageDriver: FileStorageDriver {
         
     }
 
+    ///
+    /// Get object data using a key
+    ///
     func getObject(
         key source: String
     ) async throws -> Data? {
@@ -172,7 +185,9 @@ extension S3FileStorageDriver: FileStorageDriver {
         return response.body?.asData()
     }
 
+    ///
     /// Removes a file resource using a key
+    ///
     func delete(
         key: String
     ) async throws -> Void {
@@ -186,6 +201,9 @@ extension S3FileStorageDriver: FileStorageDriver {
         )
     }
 
+    ///
+    /// Check if a file exists using a key
+    ///
     func exists(
         key: String
     ) async -> Bool {

@@ -1,10 +1,17 @@
+//
+//  LiquidS3DriverTests.swift
+//  LiquidS3DriverTests
+//
+//  Created by Tibor Bodecs on 2020. 04. 28..
+//
+
 import XCTest
 import LiquidKit
 import Logging
 import NIO
 @testable import LiquidS3Driver
 
-final class LiquidAwsS3DriverTests: XCTestCase {
+final class LiquidS3DriverTests: XCTestCase {
     
     func createTestDriverStorage(
         logger: Logger
@@ -54,7 +61,6 @@ final class LiquidAwsS3DriverTests: XCTestCase {
         let storage = try createTestDriverStorage(logger: logger)
         let fs = try createTestDriver(using: storage, logger: logger)
         defer { storage.shutdown() }
-
         let key = "test-01.txt"
         let data = Data("file storage test 01".utf8)
         let res = try await fs.upload(key: key, data: data)

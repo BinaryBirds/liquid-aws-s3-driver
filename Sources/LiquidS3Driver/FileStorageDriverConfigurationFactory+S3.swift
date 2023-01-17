@@ -1,6 +1,6 @@
 //
 //  FileStorageConfigurationFactory.swift
-//  LiquidAwsS3Driver
+//  LiquidS3Driver
 //
 //  Created by Tibor Bodecs on 2020. 04. 28..
 //
