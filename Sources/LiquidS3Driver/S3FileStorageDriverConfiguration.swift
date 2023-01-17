@@ -10,12 +10,6 @@ import SotoS3
 
 struct S3FileStorageDriverConfiguration: FileStorageDriverConfiguration {
 
-	enum Provider {
-		case s3
-		case scaleway
-//        case minio
-	}
-
     /// AWSClient credential provider object
     let credentialProvider: CredentialProviderFactory
     
@@ -25,16 +19,17 @@ struct S3FileStorageDriverConfiguration: FileStorageDriverConfiguration {
     /// S3 Bucket representation
     let bucket: S3.Bucket
     
-    /// custom endpoint for S3
+    /// custom endpoint
     let endpoint: String?
-	
-	/// S3 provider
-	let provider: Provider
+
+    /// custom public endpoint
+    let publicEndpoint: String?
 
     func makeDriverFactory(
         using storage: FileStorageDriverFactoryStorage
     ) -> FileStorageDriverFactory {
         S3FileStorageDriverFactory(
+            eventLoopGroup: storage.eventLoopGroup,
             configuration: self
         )
     }

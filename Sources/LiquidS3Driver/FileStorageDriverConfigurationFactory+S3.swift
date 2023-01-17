@@ -17,7 +17,8 @@ public extension FileStorageDriverConfigurationFactory {
         credentialProvider: CredentialProviderFactory = .default,
         region: Region,
         bucket: S3.Bucket,
-        endpoint: String? = nil
+        endpoint: String? = nil,
+        publicEndpoint: String? = nil
     ) -> FileStorageDriverConfigurationFactory {
         .init {
             S3FileStorageDriverConfiguration(
@@ -25,7 +26,7 @@ public extension FileStorageDriverConfigurationFactory {
                 region: region,
                 bucket: bucket,
                 endpoint: endpoint,
-                provider: .s3
+                publicEndpoint: publicEndpoint
             )
         }
     }

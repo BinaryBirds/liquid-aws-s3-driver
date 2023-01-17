@@ -1,6 +1,6 @@
-test: env
+test:
+	ACCESS_KEY="your-key" \
+	ACCESS_SECRET="your-secret" \
+	REGION="us-west-1" \
+	BUCKET="your-region" \
 	swift test --parallel
-
-env:
-	echo 'REGION="us-west-1"' > .env.testing
-	echo 'BUCKET="vaportestbucket"' >> .env.testing

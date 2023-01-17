@@ -41,6 +41,10 @@ let package = Package(
         .testTarget(
             name: "LiquidS3DriverTests",
             dependencies: [
+                .product(
+                    name: "LiquidKit",
+                    package: "liquid-kit"
+                ),
                 .target(
                     name: "LiquidS3Driver"
                 ),
