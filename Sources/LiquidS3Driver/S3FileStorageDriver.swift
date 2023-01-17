@@ -61,8 +61,6 @@ extension S3FileStorageDriver: FileStorageDriver {
     ///
     /// Uploads a file using a key and a data object returning the resolved URL of the uploaded file
     ///
-    /// https://docs.aws.amazon.com/general/latest/gr/s3.html
-    ///
     func upload(
         key: String,
         data: Data
