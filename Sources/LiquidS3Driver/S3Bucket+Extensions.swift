@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SotoS3
 
 extension S3.Bucket: ExpressibleByStringLiteral {
 
@@ -44,4 +45,3 @@ extension S3.Bucket {
         return true
     }
 }
-

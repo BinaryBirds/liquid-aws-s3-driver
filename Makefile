@@ -1,5 +1,5 @@
 test: env
-	swift test --enable-test-discovery --parallel
+	swift test --parallel
 
 env:
 	echo 'REGION="us-west-1"' > .env.testing

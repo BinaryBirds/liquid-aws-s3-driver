@@ -5,13 +5,17 @@
 //  Created by Tibor Bodecs on 2020. 04. 28..
 //
 
-struct LiquidAwsS3StorageConfiguration: FileStorageConfiguration {
+import LiquidKit
+import SotoS3
 
-	enum Kind {
-		case awsS3
-		case scalewayS3
+struct S3FileStorageDriverConfiguration: FileStorageDriverConfiguration {
+
+	enum Provider {
+		case s3
+		case scaleway
+//        case minio
 	}
-	
+
     /// AWSClient credential provider object
     let credentialProvider: CredentialProviderFactory
     
@@ -25,11 +29,14 @@ struct LiquidAwsS3StorageConfiguration: FileStorageConfiguration {
     let endpoint: String?
 	
 	/// S3 provider
-	let kind: Kind
+	let provider: Provider
 
-    /// creates a new FileStrorageDriver using the AWS S3 configuration object
-    func makeDriver(for databases: FileStorages) -> FileStorageDriver {
-        LiquidAwsS3StorageDriver(configuration: self)
+    func makeDriverFactory(
+        using storage: FileStorageDriverFactoryStorage
+    ) -> FileStorageDriverFactory {
+        S3FileStorageDriverFactory(
+            configuration: self
+        )
     }
 }
 

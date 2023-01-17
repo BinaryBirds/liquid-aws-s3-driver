@@ -6,30 +6,35 @@
 //
 
 import Foundation
+import LiquidKit
+import SotoS3
 
 /// AWS S3 File Storage implementation
-struct LiquidAwsS3Storage: FileStorage {
+struct S3FileStorageDriver: FileStorageDriver {
 	
-    let configuration: LiquidAwsS3StorageConfiguration
-    let context: FileStorageContext
+    let s3: S3
+    let context: FileStorageDriverContext
 
-	init(configuration: LiquidAwsS3StorageConfiguration, context: FileStorageContext, client: AWSClient)
+	init(
+        s3: S3,
+        context: FileStorageDriverContext)
 	{
-        self.configuration = configuration
+        self.s3 = s3
         self.context = context
         
-        guard configuration.bucket.hasValidName() else {
-            fatalError("Invalid bucket name")
-        }
-
-        self.s3 = S3(client: client, region: configuration.region, endpoint: endpoint)
+//        guard configuration.bucket.hasValidName() else {
+//            fatalError("Invalid bucket name")
+//        }
+//
+        // S3(client: client, region: configuration.region, endpoint: endpoint)
     }
     
     // MARK: - private
 
-    /// private s3 reference
-    private var s3: S3!
-	
+    private var configuration: S3FileStorageDriverConfiguration {
+        context.configuration as! S3FileStorageDriverConfiguration
+    }
+
     /// private helper for accessing region name
     private var region: String { configuration.region.rawValue }
     
@@ -38,11 +43,10 @@ struct LiquidAwsS3Storage: FileStorage {
     
 	/// private helper for accessing the endpoint URL as a String
     private var endpoint: String {
-		switch configuration.kind {
-		case .awsS3:
+		switch configuration.provider {
+		case .s3:
 			return configuration.endpoint ?? "https://s3.\(region).amazonaws.com"
-			
-		case .scalewayS3:
+		case .scaleway:
 			return configuration.endpoint ?? "https://s3.\(region).scw.cloud"
 		}
 	}
@@ -53,15 +57,14 @@ struct LiquidAwsS3Storage: FileStorage {
 			return customEndpoint + "/" + bucket
 		}
 
-		switch configuration.kind {
-		case .awsS3:
+		switch configuration.provider {
+		case .s3:
 			/// http://www.wryway.com/blog/aws-s3-url-styles/
 			if region == "us-east-1" {
 				return "https://\(bucket).s3.amazonaws.com"
 			}			
 			return "https://\(bucket).s3-\(region).amazonaws.com"
-
-		case .scalewayS3:
+		case .scaleway:
 			return "https://\(bucket).s3.\(region).scw.cloud"
 		}
     }
@@ -99,7 +102,7 @@ struct LiquidAwsS3Storage: FileStorage {
     func copy(key source: String, to destination: String) async throws -> String {
         let exists = await exists(key: source)
         guard exists else {
-            throw LiquidError.keyNotExists
+            throw FileStorageDriverError.keyNotExists
         }
         return try await s3.copyObject(S3.CopyObjectRequest(acl: .publicRead,
                                                             bucket: bucket,
@@ -112,7 +115,7 @@ struct LiquidAwsS3Storage: FileStorage {
     func move(key source: String, to destination: String) async throws -> String {
         let exists = await exists(key: source)
         guard exists else {
-            throw LiquidError.keyNotExists
+            throw FileStorageDriverError.keyNotExists
         }
         let key = try await copy(key: source, to: destination)
         try await delete(key: source)
@@ -123,7 +126,7 @@ struct LiquidAwsS3Storage: FileStorage {
     func getObject(key source: String) async throws -> Data? {
         let exists = await exists(key: source)
         guard exists else {
-            throw LiquidError.keyNotExists
+            throw FileStorageDriverError.keyNotExists
         }
         return try await s3.getObject(S3.GetObjectRequest(bucket: bucket, key: source)).map { $0.body?.asData() }.get()
     }
