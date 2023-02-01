@@ -15,7 +15,7 @@ final class LiquidS3DriverTests: XCTestCase {
     
     func createTestDriverStorage(
         logger: Logger
-    ) throws -> FileStorageDriverFactoryStorage {
+    ) throws -> ObjectStorages {
         let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let pool = NIOThreadPool(numberOfThreads: 1)
         let fileio = NonBlockingFileIO(threadPool: pool)
@@ -29,12 +29,12 @@ final class LiquidS3DriverTests: XCTestCase {
     }
 
     func createTestDriver(
-        using storage: FileStorageDriverFactoryStorage,
+        using storages: ObjectStorages,
         logger: Logger
-    ) throws -> S3FileStorageDriver {
+    ) throws -> S3ObjectStorage {
         let env = ProcessInfo.processInfo.environment
 
-        storage.use(
+        storages.use(
             .s3(
                 credentialProvider: .static(
                     accessKeyId: env["ACCESS_KEY"] ?? "",
@@ -48,10 +48,10 @@ final class LiquidS3DriverTests: XCTestCase {
             as: .s3
         )
 
-        return storage.makeDriver(
+        return storages.make(
             logger: logger,
-            on: storage.eventLoopGroup.next()
-        )! as! S3FileStorageDriver
+            on: storages.eventLoopGroup.next()
+        )! as! S3ObjectStorage
     }
 
     // MARK: - tests

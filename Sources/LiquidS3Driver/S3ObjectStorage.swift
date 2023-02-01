@@ -1,5 +1,5 @@
 //
-//  S3FileStorageDriver.swift
+//  S3ObjectStorage.swift
 //  LiquidS3Driver
 //
 //  Created by Tibor Bodecs on 2020. 04. 28..
@@ -12,24 +12,24 @@ import SotoS3
 ///
 /// S3 File Storage implementation
 /// 
-struct S3FileStorageDriver {
+struct S3ObjectStorage {
 	
     let s3: S3
-    let context: FileStorageDriverContext
+    let context: ObjectStorageContext
 
 	init(
         s3: S3,
-        context: FileStorageDriverContext
+        context: ObjectStorageContext
     ) {
         self.s3 = s3
         self.context = context
     }
 }
 
-private extension S3FileStorageDriver {
+private extension S3ObjectStorage {
 
-    var configuration: S3FileStorageDriverConfiguration {
-        context.configuration as! S3FileStorageDriverConfiguration
+    var configuration: S3ObjectStorageConfiguration {
+        context.configuration as! S3ObjectStorageConfiguration
     }
 
     var region: String { configuration.region.rawValue }
@@ -47,7 +47,7 @@ private extension S3FileStorageDriver {
     }
 }
 
-extension S3FileStorageDriver: FileStorageDriver {
+extension S3ObjectStorage: ObjectStorage {
     
     ///
     /// Resolves a file location using a key and the public endpoint URL string
@@ -130,7 +130,7 @@ extension S3FileStorageDriver: FileStorageDriver {
     ) async throws -> String {
         let exists = await exists(key: source)
         guard exists else {
-            throw FileStorageDriverError.keyNotExists
+            throw ObjectStorageError.keyNotExists
         }
         _ = try await s3.copyObject(
             S3.CopyObjectRequest(
@@ -154,7 +154,7 @@ extension S3FileStorageDriver: FileStorageDriver {
     ) async throws -> String {
         let exists = await exists(key: source)
         guard exists else {
-            throw FileStorageDriverError.keyNotExists
+            throw ObjectStorageError.keyNotExists
         }
         let key = try await copy(key: source, to: destination)
         try await delete(key: source)
@@ -170,7 +170,7 @@ extension S3FileStorageDriver: FileStorageDriver {
     ) async throws -> Data? {
         let exists = await exists(key: source)
         guard exists else {
-            throw FileStorageDriverError.keyNotExists
+            throw ObjectStorageError.keyNotExists
         }
         let response = try await s3.getObject(
             S3.GetObjectRequest(

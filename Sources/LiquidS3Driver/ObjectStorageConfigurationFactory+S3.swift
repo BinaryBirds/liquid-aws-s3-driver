@@ -1,5 +1,5 @@
 //
-//  FileStorageConfigurationFactory.swift
+//  ObjectStorageConfigurationFactory+S3.swift
 //  LiquidS3Driver
 //
 //  Created by Tibor Bodecs on 2020. 04. 28..
@@ -8,7 +8,7 @@
 import LiquidKit
 import SotoS3
 
-public extension FileStorageDriverConfigurationFactory {
+public extension ObjectStorageConfigurationFactory {
 
     ///
     /// Creates a new factory object using the provided S3 configuration
@@ -19,9 +19,9 @@ public extension FileStorageDriverConfigurationFactory {
         bucket: S3.Bucket,
         endpoint: String? = nil,
         publicEndpoint: String? = nil
-    ) -> FileStorageDriverConfigurationFactory {
+    ) -> ObjectStorageConfigurationFactory {
         .init {
-            S3FileStorageDriverConfiguration(
+            S3ObjectStorageConfiguration(
                 credentialProvider: credentialProvider,
                 region: region,
                 bucket: bucket,

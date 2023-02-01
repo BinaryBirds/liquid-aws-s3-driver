@@ -1,5 +1,5 @@
 //
-//  S3FileStorageDriverFactory.swift
+//  S3ObjectStorageDriver.swift
 //  LiquidS3Driver
 //
 //  Created by Tibor Bodecs on 2020. 04. 28..
@@ -9,14 +9,14 @@ import LiquidKit
 import SotoS3
 import SotoCore
 
-struct S3FileStorageDriverFactory: FileStorageDriverFactory {
+struct S3ObjectStorageDriver: ObjectStorageDriver {
 
-    let configuration: S3FileStorageDriverConfiguration
+    let configuration: S3ObjectStorageConfiguration
     let client: AWSClient
     
     init(
         eventLoopGroup: EventLoopGroup,
-        configuration: S3FileStorageDriverConfiguration
+        configuration: S3ObjectStorageConfiguration
     ) {
         self.configuration = configuration
         self.client = AWSClient(
@@ -25,9 +25,9 @@ struct S3FileStorageDriverFactory: FileStorageDriverFactory {
         )
     }
 
-    func makeDriver(
-        using context: FileStorageDriverContext
-    ) -> FileStorageDriver {
+    func make(
+        using context: ObjectStorageContext
+    ) -> ObjectStorage {
         let awsUrl = "https://s3.\(configuration.region.rawValue).amazonaws.com"
         let endpoint = configuration.endpoint ?? awsUrl
 
@@ -36,7 +36,7 @@ struct S3FileStorageDriverFactory: FileStorageDriverFactory {
             region: configuration.region,
             endpoint: endpoint
         )
-        return S3FileStorageDriver(
+        return S3ObjectStorage(
             s3: s3,
             context: context
         )

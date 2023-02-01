@@ -1,5 +1,5 @@
 //
-//  S3FileStorageDriverConfiguration.swift
+//  S3ObjectStorageConfiguration.swift
 //  LiquidS3Driver
 //
 //  Created by Tibor Bodecs on 2020. 04. 28..
@@ -8,7 +8,7 @@
 import LiquidKit
 import SotoS3
 
-struct S3FileStorageDriverConfiguration: FileStorageDriverConfiguration {
+struct S3ObjectStorageConfiguration: ObjectStorageConfiguration {
 
     /// Credential provider object
     let credentialProvider: CredentialProviderFactory
@@ -28,11 +28,11 @@ struct S3FileStorageDriverConfiguration: FileStorageDriverConfiguration {
     ///
     /// Creates the driver factory
     ///
-    func makeDriverFactory(
-        using storage: FileStorageDriverFactoryStorage
-    ) -> FileStorageDriverFactory {
-        S3FileStorageDriverFactory(
-            eventLoopGroup: storage.eventLoopGroup,
+    func make(
+        using storages: ObjectStorages
+    ) -> ObjectStorageDriver {
+        S3ObjectStorageDriver(
+            eventLoopGroup: storages.eventLoopGroup,
             configuration: self
         )
     }
