@@ -66,7 +66,7 @@ extension S3ObjectStorage: ObjectStorage {
         data: Data
     ) async throws -> String {
         _ = try await s3.putObject(
-            S3.PutObjectRequest(
+            .init(
                 acl: .publicRead,
                 body: .data(data),
                 bucket: bucketName,
@@ -86,7 +86,7 @@ extension S3ObjectStorage: ObjectStorage {
         key: String
     ) async throws {
         _ = try await s3.putObject(
-            S3.PutObjectRequest(
+            .init(
                 acl: .publicRead,
                 bucket: bucketName,
                 contentLength: 0,
@@ -104,7 +104,7 @@ extension S3ObjectStorage: ObjectStorage {
         key: String? = nil
     ) async throws -> [String] {
         let list = try await s3.listObjects(
-            S3.ListObjectsRequest(
+            .init(
                 bucket: bucketName,
                 prefix: key
             ),
@@ -133,7 +133,7 @@ extension S3ObjectStorage: ObjectStorage {
             throw ObjectStorageError.keyNotExists
         }
         _ = try await s3.copyObject(
-            S3.CopyObjectRequest(
+            .init(
                 acl: .publicRead,
                 bucket: bucketName,
                 copySource: bucketName + "/" + source,
@@ -173,7 +173,7 @@ extension S3ObjectStorage: ObjectStorage {
             throw ObjectStorageError.keyNotExists
         }
         let response = try await s3.getObject(
-            S3.GetObjectRequest(
+            .init(
                 bucket: bucketName,
                 key: source
             ),
@@ -190,7 +190,7 @@ extension S3ObjectStorage: ObjectStorage {
         key: String
     ) async throws -> Void {
         _ = try await s3.deleteObject(
-            S3.DeleteObjectRequest(
+            .init(
                 bucket: bucketName,
                 key: key
             ),
@@ -207,7 +207,7 @@ extension S3ObjectStorage: ObjectStorage {
     ) async -> Bool {
         do {
             _ = try await s3.getObject(
-                S3.GetObjectRequest(
+                .init(
                     bucket: bucketName,
                     key: key
                 ),
