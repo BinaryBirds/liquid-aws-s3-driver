@@ -13,7 +13,7 @@ import NIO
 
 final class LiquidS3DriverTests: XCTestCase {
     
-    func createTestDriverStorage(
+    func createTestObjectStorages(
         logger: Logger
     ) throws -> ObjectStorages {
         let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
@@ -28,7 +28,7 @@ final class LiquidS3DriverTests: XCTestCase {
         )
     }
 
-    func createTestDriver(
+    func createTestStorage(
         using storages: ObjectStorages,
         logger: Logger
     ) throws -> S3ObjectStorage {
@@ -58,130 +58,130 @@ final class LiquidS3DriverTests: XCTestCase {
 
     func testUpload() async throws {
         let logger = Logger(label: "test-logger")
-        let storage = try createTestDriverStorage(logger: logger)
-        let fs = try createTestDriver(using: storage, logger: logger)
-        defer { storage.shutdown() }
+        let storages = try createTestObjectStorages(logger: logger)
+        let os = try createTestStorage(using: storages, logger: logger)
+        defer { storages.shutdown() }
         let key = "test-01.txt"
         let data = Data("file storage test 01".utf8)
-        let res = try await fs.upload(key: key, data: data)
-        XCTAssertEqual(res, fs.resolve(key: key))
+        let res = try await os.upload(key: key, data: data)
+        XCTAssertEqual(res, os.resolve(key: key))
     }
 
     func testCreateDirectory() async throws {
         let logger = Logger(label: "test-logger")
-        let storage = try createTestDriverStorage(logger: logger)
-        let fs = try createTestDriver(using: storage, logger: logger)
-        defer { storage.shutdown() }
+        let storages = try createTestObjectStorages(logger: logger)
+        let os = try createTestStorage(using: storages, logger: logger)
+        defer { storages.shutdown() }
         
         let key = "dir01/dir02/dir03"
-        let _ = try await fs.createDirectory(key: key)
-        let keys1 = try await fs.list(key: "dir01")
+        let _ = try await os.createDirectory(key: key)
+        let keys1 = try await os.list(key: "dir01")
         XCTAssertEqual(keys1, ["dir02"])
-        let keys2 = try await fs.list(key: "dir01/dir02")
+        let keys2 = try await os.list(key: "dir01/dir02")
         XCTAssertEqual(keys2, ["dir03"])
     }
 
     func testList() async throws {
         let logger = Logger(label: "test-logger")
-        let storage = try createTestDriverStorage(logger: logger)
-        let fs = try createTestDriver(using: storage, logger: logger)
-        defer { storage.shutdown() }
+        let storages = try createTestObjectStorages(logger: logger)
+        let os = try createTestStorage(using: storages, logger: logger)
+        defer { storages.shutdown() }
 
         let key1 = "dir02/dir03"
-        let _ = try await fs.createDirectory(key: key1)
+        let _ = try await os.createDirectory(key: key1)
         
         let key2 = "dir02/test-01.txt"
         let data = Data("test".utf8)
-        _ = try await fs.upload(key: key2, data: data)
+        _ = try await os.upload(key: key2, data: data)
         
-        let res = try await fs.list(key: "dir02")
+        let res = try await os.list(key: "dir02")
         XCTAssertEqual(res, ["dir03", "test-01.txt"])
     }
 
     func testExists() async throws {
         let logger = Logger(label: "test-logger")
-        let storage = try createTestDriverStorage(logger: logger)
-        let fs = try createTestDriver(using: storage, logger: logger)
-        defer { storage.shutdown() }
+        let storages = try createTestObjectStorages(logger: logger)
+        let os = try createTestStorage(using: storages, logger: logger)
+        defer { storages.shutdown() }
 
         let key1 = "non-existing-thing"
-        let exists1 = await fs.exists(key: key1)
+        let exists1 = await os.exists(key: key1)
         XCTAssertFalse(exists1)
         
         let key2 = "my/dir"
-        _ = try await fs.createDirectory(key: key2)
-        let exists2 = await fs.exists(key: key2)
+        _ = try await os.createDirectory(key: key2)
+        let exists2 = await os.exists(key: key2)
         XCTAssertTrue(exists2)
     }
     
     func testListFile() async throws {
         let logger = Logger(label: "test-logger")
-        let storage = try createTestDriverStorage(logger: logger)
-        let fs = try createTestDriver(using: storage, logger: logger)
-        defer { storage.shutdown() }
+        let storages = try createTestObjectStorages(logger: logger)
+        let os = try createTestStorage(using: storages, logger: logger)
+        defer { storages.shutdown() }
         
         let key2 = "dir04/test-01.txt"
         let data = Data("test".utf8)
-        _ = try await fs.upload(key: key2, data: data)
-        let res = try await fs.list(key: key2)
+        _ = try await os.upload(key: key2, data: data)
+        let res = try await os.list(key: key2)
         XCTAssertEqual(res, [])
     }
     
     func testCopy() async throws {
         let logger = Logger(label: "test-logger")
-        let storage = try createTestDriverStorage(logger: logger)
-        let fs = try createTestDriver(using: storage, logger: logger)
-        defer { storage.shutdown() }
+        let storages = try createTestObjectStorages(logger: logger)
+        let os = try createTestStorage(using: storages, logger: logger)
+        defer { storages.shutdown() }
         
         let key = "test-02.txt"
         let data = Data("file storage test 02".utf8)
         
-        let res = try await fs.upload(key: key, data: data)
-        XCTAssertEqual(res, fs.resolve(key: key))
+        let res = try await os.upload(key: key, data: data)
+        XCTAssertEqual(res, os.resolve(key: key))
         
         let dest = "test-03.txt"
-        let res2 = try await fs.copy(key: key, to: dest)
-        XCTAssertEqual(res2, fs.resolve(key: dest))
+        let res2 = try await os.copy(key: key, to: dest)
+        XCTAssertEqual(res2, os.resolve(key: dest))
         
-        let res3 = await fs.exists(key: key)
+        let res3 = await os.exists(key: key)
         XCTAssertTrue(res3)
-        let res4 = await fs.exists(key: dest)
+        let res4 = await os.exists(key: dest)
         XCTAssertTrue(res4)
     }
     
     func testMove() async throws {
         let logger = Logger(label: "test-logger")
-        let storage = try createTestDriverStorage(logger: logger)
-        let fs = try createTestDriver(using: storage, logger: logger)
-        defer { storage.shutdown() }
+        let storages = try createTestObjectStorages(logger: logger)
+        let os = try createTestStorage(using: storages, logger: logger)
+        defer { storages.shutdown() }
         
         let key = "test-04.txt"
         let data = Data("file storage test 04".utf8)
-        let res = try await fs.upload(key: key, data: data)
-        XCTAssertEqual(res, fs.resolve(key: key))
+        let res = try await os.upload(key: key, data: data)
+        XCTAssertEqual(res, os.resolve(key: key))
         
         let dest = "test-05.txt"
-        let res2 = try await fs.move(key: key, to: dest)
-        XCTAssertEqual(res2, fs.resolve(key: dest))
+        let res2 = try await os.move(key: key, to: dest)
+        XCTAssertEqual(res2, os.resolve(key: dest))
         
-        let res3 = await fs.exists(key: key)
+        let res3 = await os.exists(key: key)
         XCTAssertFalse(res3)
-        let res4 = await fs.exists(key: dest)
+        let res4 = await os.exists(key: dest)
         XCTAssertTrue(res4)
     }
 
     func testGetObject() async throws {
         let logger = Logger(label: "test-logger")
-        let storage = try createTestDriverStorage(logger: logger)
-        let fs = try createTestDriver(using: storage, logger: logger)
-        defer { storage.shutdown() }
+        let storages = try createTestObjectStorages(logger: logger)
+        let os = try createTestStorage(using: storages, logger: logger)
+        defer { storages.shutdown() }
         
         let key = "test-04.txt"
         let data = Data("file storage test 04".utf8)
-        let res = try await fs.upload(key: key, data: data)
-        XCTAssertEqual(res, fs.resolve(key: key))
+        let res = try await os.upload(key: key, data: data)
+        XCTAssertEqual(res, os.resolve(key: key))
 
-        let obj = try await fs.getObject(key: key)
+        let obj = try await os.getObject(key: key)
         XCTAssertNotNil(obj)
         XCTAssertEqual(obj, data)
     }
