@@ -5,7 +5,6 @@
 //  Created by Tibor Bodecs on 2020. 04. 28..
 //
 
-
 import XCTest
 import LiquidKit
 import Logging
@@ -13,7 +12,7 @@ import NIO
 @testable import LiquidS3Driver
 
 final class LiquidS3DriverTests: XCTestCase {
-
+    
     private func getBasePath() -> String {
         "/" + #file
             .split(separator: "/")
@@ -252,9 +251,33 @@ final class LiquidS3DriverTests: XCTestCase {
             checksum: nil
         )
         
-        let buffer = try await os.download(key: key)
+        let buffer = try await os.download(key: key, range: nil)
         let res = buffer.getData(at: 0, length: buffer.readableBytes)
         XCTAssertEqual(res, data)
+    }
+    
+    func testDownloadRange() async throws {
+        let logger = Logger(label: "test-logger")
+        let storages = try createTestObjectStorages(logger: logger)
+        let os = try createTestStorage(using: storages, logger: logger)
+        defer { storages.shutdown() }
+        
+        let key = "test-01.txt"
+        let data = Data("file storage test 01".utf8)
+        try await os.upload(
+            key: key,
+            buffer: .init(data: data),
+            checksum: nil
+        )
+        
+        let buffer = try await os.download(key: key, range: 1...3)
+        guard
+            let resData = buffer.getData(at: 0, length: buffer.readableBytes),
+            let res = String(data: resData, encoding: .utf8)
+        else {
+            return XCTFail("Invalid response data")
+        }
+        XCTAssertEqual(res, "ile")
     }
     
     func testMultipartUpload() async throws {

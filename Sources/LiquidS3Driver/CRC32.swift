@@ -18,7 +18,7 @@ private extension FixedWidthInteger where Self: UnsignedInteger {
     }
 }
 
-// credits: 
+// credits: https://github.com/krzyzanowskim/CryptoSwift
 final class CRC32: ChecksumCalculator {
 
     private let lookupTable: [UInt32]

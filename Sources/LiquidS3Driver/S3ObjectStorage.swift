@@ -9,7 +9,7 @@ import LiquidKit
 import SotoS3
 
 ///
-/// S3 File Storage implementation
+/// S3 object storage implementation
 /// 
 struct S3ObjectStorage {
 	
@@ -271,19 +271,22 @@ extension S3ObjectStorage: ObjectStorage {
     }
 
     ///
-    /// Get object data using a key
+    /// Download object data using a key
     ///
     func download(
-        key source: String
+        key source: String,
+        range: ClosedRange<UInt>?
     ) async throws -> ByteBuffer {
         let exists = await exists(key: source)
         guard exists else {
             throw ObjectStorageError.keyNotExists
         }
+        let byteRange = range.map { "bytes=\($0.lowerBound)-\($0.upperBound)" }
         let response = try await s3.getObject(
             .init(
                 bucket: bucketName,
-                key: source
+                key: source,
+                range: byteRange
             ),
             logger: context.logger,
             on: context.eventLoop
