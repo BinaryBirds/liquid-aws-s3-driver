@@ -19,15 +19,6 @@
       }
     },
     {
-      "identity" : "liquid-kit",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/binarybirds/liquid-kit",
-      "state" : {
-        "branch" : "dev",
-        "revision" : "71ab968660ecdc75020e393579f16e7c8a238161"
-      }
-    },
-    {
       "identity" : "soto",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/soto-project/soto",

@@ -15,13 +15,16 @@ let package = Package(
         ),
     ],
     dependencies: [
+//        .package(
+//            url: "https://github.com/binarybirds/liquid-kit",
+//            branch: "dev"
+//        ),
         .package(
-            url: "https://github.com/binarybirds/liquid-kit",
-            branch: "dev"
+            path: "../liquid-kit"
         ),
         .package(
             url: "https://github.com/soto-project/soto",
-            from: "6.4.0"
+            from: "6.5.0"
         ),
     ],
     targets: [

@@ -5,7 +5,6 @@
 //  Created by Tibor Bodecs on 2020. 04. 28..
 //
 
-import Foundation
 import LiquidKit
 import SotoS3
 
@@ -48,7 +47,11 @@ private extension S3ObjectStorage {
 }
 
 extension S3ObjectStorage: ObjectStorage {
-    
+
+    func createChecksumCalculator() -> ChecksumCalculator {
+        CRC32()
+    }
+
     ///
     /// Resolves a file location using a key and the public endpoint URL string
     ///
@@ -63,26 +66,134 @@ extension S3ObjectStorage: ObjectStorage {
     ///
     func upload(
         key: String,
-        data: Data
-    ) async throws -> String {
-        _ = try await s3.putObject(
+        buffer: ByteBuffer,
+        checksum: String?
+    ) async throws {
+        do {
+            _ = try await s3.putObject(
+                .init(
+                    acl: .publicRead,
+                    body: .byteBuffer(buffer),
+                    bucket: bucketName,
+                    checksumAlgorithm: (checksum != nil) ? .crc32 : .none,
+                    checksumCRC32: checksum,
+                    key: key
+                ),
+                logger: context.logger,
+                on: context.eventLoop
+            )
+        }
+        catch let error as SotoCore.AWSResponseError {
+            if
+                let ctx = error.context,
+                ctx.responseCode == .badRequest,
+                ctx.message == "Value for x-amz-checksum-crc32 header is invalid."
+            {
+                throw ObjectStorageError.invalidChecksum
+            }
+            throw error
+        }
+    }
+    
+    // MARK: - multipart upload
+
+    func createMultipartUpload(
+        key: String
+    ) async throws -> MultipartUpload.ID {
+        let res = try await s3.createMultipartUpload(
             .init(
                 acl: .publicRead,
-                body: .data(data),
                 bucket: bucketName,
-                contentLength: Int64(data.count),
                 key: key
             ),
             logger: context.logger,
             on: context.eventLoop
         )
-        return resolve(key: key)
+        guard let uploadId = res.uploadId else {
+            fatalError()
+        }
+        return .init(uploadId)
+    }
+    
+    func uploadMultipartChunk(
+        key: String,
+        buffer: ByteBuffer,
+        uploadId: MultipartUpload.ID,
+        partNumber: Int
+    ) async throws -> MultipartUpload.Chunk {
+        let res = try await s3.uploadPart(
+            .init(
+                body: .byteBuffer(buffer),
+                bucket: bucketName,
+                key: key,
+                partNumber: partNumber,
+                uploadId: uploadId.value
+            ),
+            logger: context.logger,
+            on: context.eventLoop
+        )
+        guard let etag = res.eTag else {
+            throw ObjectStorageError.invalidResponse
+        }
+        return .init(id: etag, number: partNumber)
+    }
+    
+    func cancelMultipartUpload(
+        key: String,
+        uploadId: MultipartUpload.ID
+    ) async throws {
+        _ = try await s3.abortMultipartUpload(
+            .init(
+                bucket: bucketName,
+                key: key,
+                uploadId: uploadId.value
+            ),
+            logger: context.logger,
+            on: context.eventLoop
+        )
+    }
+    
+    func completeMultipartUpload(
+        key: String,
+        uploadId: MultipartUpload.ID,
+        checksum: String?,
+        chunks: [MultipartUpload.Chunk]
+    ) async throws {
+        let parts = chunks.map { chunk -> S3.CompletedPart in
+            .init(
+                eTag: chunk.id,
+                partNumber: chunk.number
+            )
+        }
+        do {
+            _ = try await s3.completeMultipartUpload(
+                .init(
+                    bucket: bucketName,
+                    checksumCRC32: checksum,
+                    key: key,
+                    multipartUpload: .init(parts: parts),
+                    uploadId: uploadId.value
+                ),
+                logger: context.logger,
+                on: context.eventLoop
+            )
+        }
+        catch let error as SotoCore.AWSResponseError {
+            if
+                let ctx = error.context,
+                ctx.responseCode == .badRequest,
+                ctx.message == "Value for x-amz-checksum-crc32 header is invalid."
+            {
+                throw ObjectStorageError.invalidChecksum
+            }
+            throw error
+        }
     }
 
     ///
-    /// Create a directory structure for a given key
+    /// Creates an empty key (directory)
     ///
-    func createDirectory(
+    func create(
         key: String
     ) async throws {
         _ = try await s3.putObject(
@@ -127,7 +238,7 @@ extension S3ObjectStorage: ObjectStorage {
     func copy(
         key source: String,
         to destination: String
-    ) async throws -> String {
+    ) async throws {
         let exists = await exists(key: source)
         guard exists else {
             throw ObjectStorageError.keyNotExists
@@ -142,7 +253,6 @@ extension S3ObjectStorage: ObjectStorage {
             logger: context.logger,
             on: context.eventLoop
         )
-        return resolve(key: destination)
     }
     
     ///
@@ -151,23 +261,21 @@ extension S3ObjectStorage: ObjectStorage {
     func move(
         key source: String,
         to destination: String
-    ) async throws -> String {
+    ) async throws {
         let exists = await exists(key: source)
         guard exists else {
             throw ObjectStorageError.keyNotExists
         }
-        let key = try await copy(key: source, to: destination)
+        _ = try await copy(key: source, to: destination)
         try await delete(key: source)
-        return key
-        
     }
 
     ///
     /// Get object data using a key
     ///
-    func getObject(
+    func download(
         key source: String
-    ) async throws -> Data? {
+    ) async throws -> ByteBuffer {
         let exists = await exists(key: source)
         guard exists else {
             throw ObjectStorageError.keyNotExists
@@ -180,7 +288,10 @@ extension S3ObjectStorage: ObjectStorage {
             logger: context.logger,
             on: context.eventLoop
         )
-        return response.body?.asData()
+        guard let buffer = response.body?.asByteBuffer() else {
+            throw ObjectStorageError.invalidResponse
+        }
+        return buffer
     }
 
     ///
