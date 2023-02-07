@@ -1,5 +1,5 @@
 //
-//  LiquidS3DriverTests.swift
+//  LiquidS3DriverTestCase.swift
 //  LiquidS3DriverTests
 //
 //  Created by Tibor Bodecs on 2020. 04. 28..
@@ -22,7 +22,6 @@ extension ByteBuffer {
         }
         return res
     }
-    
 }
 
 open class LiquidS3DriverTestCase: XCTestCase {

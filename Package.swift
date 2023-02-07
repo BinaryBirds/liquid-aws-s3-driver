@@ -48,6 +48,9 @@ let package = Package(
                 .target(
                     name: "LiquidS3Driver"
                 ),
+            ],
+            exclude: [
+                "Assets"
             ]
         ),
     ]
