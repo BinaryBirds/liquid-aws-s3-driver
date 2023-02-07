@@ -19,12 +19,13 @@ struct S3ObjectStorageDriver: ObjectStorageDriver {
         configuration: S3ObjectStorageConfiguration
     ) {
         self.configuration = configuration
+
         self.client = AWSClient(
             credentialProvider: configuration.credentialProvider,
-//            options: .init(
-//                requestLogLevel: .notice,
-//                errorLogLevel: .notice
-//            ),
+            options: .init(
+                requestLogLevel: .notice,
+                errorLogLevel: .notice
+            ),
             httpClientProvider: .createNewWithEventLoopGroup(eventLoopGroup)
         )
     }

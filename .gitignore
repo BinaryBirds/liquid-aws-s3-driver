@@ -6,3 +6,5 @@ Packages
 xcuserdata/
 .env.testing
 DerivedData/
+Tests/LiquidS3DriverTests/tmp/
+Tests/LiquidS3DriverTests/Assets/test.avi

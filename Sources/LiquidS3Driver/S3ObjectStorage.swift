@@ -61,6 +61,38 @@ extension S3ObjectStorage: ObjectStorage {
         publicEndpoint + "/" + key
     }
     
+    func upload<T: AsyncSequence & Sendable>(
+        sequence: T,
+        size: UInt,
+        key: String,
+        checksum: String?
+    ) async throws where T.Element == ByteBuffer {
+        do {
+            _ = try await s3.putObject(
+                .init(
+                    acl: .publicRead,
+                    body: .asyncSequence(sequence, size: Int(size)),
+                    bucket: bucketName,
+                    checksumAlgorithm: (checksum != nil) ? .crc32 : .none,
+                    checksumCRC32: checksum,
+                    key: key
+                ),
+                logger: context.logger,
+                on: context.eventLoop
+            )
+        }
+        catch let error as SotoCore.AWSResponseError {
+            if
+                let ctx = error.context,
+                ctx.responseCode == .badRequest,
+                ctx.message == "Value for x-amz-checksum-crc32 header is invalid."
+            {
+                throw ObjectStorageError.invalidChecksum
+            }
+            throw error
+        }
+    }
+    
     ///
     /// Uploads a file using a key and a data object returning the resolved URL of the uploaded file
     ///
@@ -121,7 +153,8 @@ extension S3ObjectStorage: ObjectStorage {
         uploadId: MultipartUpload.ID,
         partNumber: Int
     ) async throws -> MultipartUpload.Chunk {
-        let res = try await s3.uploadPart(
+        let s3Timeout = s3.with(timeout: .minutes(10))
+        let res = try await s3Timeout.uploadPart(
             .init(
                 body: .byteBuffer(buffer),
                 bucket: bucketName,
@@ -166,7 +199,8 @@ extension S3ObjectStorage: ObjectStorage {
             )
         }
         do {
-            _ = try await s3.completeMultipartUpload(
+            let s3Timeout = s3.with(timeout: .minutes(10))
+            _ = try await s3Timeout.completeMultipartUpload(
                 .init(
                     bucket: bucketName,
                     checksumCRC32: checksum,
@@ -295,6 +329,35 @@ extension S3ObjectStorage: ObjectStorage {
             throw ObjectStorageError.invalidResponse
         }
         return buffer
+    }
+
+    func download(
+        key: String
+    ) -> AsyncThrowingStream<ByteBuffer, Error> {
+        .init { c in
+            Task {
+                do {
+                    _ = try await s3.multipartDownload(
+                        .init(
+                            bucket: bucketName,
+                            key: key
+                        ),
+                        partSize: 5 * 1024 * 1024,
+                        logger: context.logger,
+                        on: context.eventLoop
+                    ) { buffer, size, eventLoop in
+                        c.yield(buffer)
+                        return eventLoop.makeSucceededVoidFuture()
+                    }
+                    .get()
+
+                    c.finish()
+                }
+                catch {
+                    c.finish(throwing: error)
+                }
+            }
+        }
     }
 
     ///
