@@ -65,10 +65,12 @@ extension S3ObjectStorage: ObjectStorage {
         sequence: T,
         size: UInt,
         key: String,
-        checksum: String?
+        checksum: String?,
+        timeout: TimeAmount
     ) async throws where T.Element == ByteBuffer {
         do {
-            _ = try await s3.putObject(
+            let customS3 = s3.with(timeout: timeout)
+            _ = try await customS3.putObject(
                 .init(
                     acl: .publicRead,
                     body: .asyncSequence(sequence, size: Int(size)),
@@ -99,10 +101,12 @@ extension S3ObjectStorage: ObjectStorage {
     func upload(
         key: String,
         buffer: ByteBuffer,
-        checksum: String?
+        checksum: String?,
+        timeout: TimeAmount
     ) async throws {
         do {
-            _ = try await s3.putObject(
+            let customS3 = s3.with(timeout: timeout)
+            _ = try await customS3.putObject(
                 .init(
                     acl: .publicRead,
                     body: .byteBuffer(buffer),
@@ -151,10 +155,11 @@ extension S3ObjectStorage: ObjectStorage {
         key: String,
         buffer: ByteBuffer,
         uploadId: MultipartUpload.ID,
-        partNumber: Int
+        partNumber: Int,
+        timeout: TimeAmount
     ) async throws -> MultipartUpload.Chunk {
-        let s3Timeout = s3.with(timeout: .minutes(10))
-        let res = try await s3Timeout.uploadPart(
+        let customS3 = s3.with(timeout: timeout)
+        let res = try await customS3.uploadPart(
             .init(
                 body: .byteBuffer(buffer),
                 bucket: bucketName,
@@ -190,7 +195,8 @@ extension S3ObjectStorage: ObjectStorage {
         key: String,
         uploadId: MultipartUpload.ID,
         checksum: String?,
-        chunks: [MultipartUpload.Chunk]
+        chunks: [MultipartUpload.Chunk],
+        timeout: TimeAmount
     ) async throws {
         let parts = chunks.map { chunk -> S3.CompletedPart in
             .init(
@@ -199,8 +205,8 @@ extension S3ObjectStorage: ObjectStorage {
             )
         }
         do {
-            let s3Timeout = s3.with(timeout: .minutes(10))
-            _ = try await s3Timeout.completeMultipartUpload(
+            let customS3 = s3.with(timeout: timeout)
+            _ = try await customS3.completeMultipartUpload(
                 .init(
                     bucket: bucketName,
                     checksumCRC32: checksum,
@@ -309,14 +315,16 @@ extension S3ObjectStorage: ObjectStorage {
     ///
     func download(
         key source: String,
-        range: ClosedRange<UInt>?
+        range: ClosedRange<UInt>?,
+        timeout: TimeAmount
     ) async throws -> ByteBuffer {
         let exists = await exists(key: source)
         guard exists else {
             throw ObjectStorageError.keyNotExists
         }
         let byteRange = range.map { "bytes=\($0.lowerBound)-\($0.upperBound)" }
-        let response = try await s3.getObject(
+        let customS3 = s3.with(timeout: timeout)
+        let response = try await customS3.getObject(
             .init(
                 bucket: bucketName,
                 key: source,
@@ -332,17 +340,20 @@ extension S3ObjectStorage: ObjectStorage {
     }
 
     func download(
-        key: String
+        key: String,
+        chunkSize: UInt,
+        timeout: TimeAmount
     ) -> AsyncThrowingStream<ByteBuffer, Error> {
         .init { c in
             Task {
                 do {
-                    _ = try await s3.multipartDownload(
+                    let customS3 = s3.with(timeout: timeout)
+                    _ = try await customS3.multipartDownload(
                         .init(
                             bucket: bucketName,
                             key: key
                         ),
-                        partSize: 5 * 1024 * 1024,
+                        partSize: Int(chunkSize),
                         logger: context.logger,
                         on: context.eventLoop
                     ) { buffer, size, eventLoop in

@@ -20,7 +20,11 @@ final class LiquidS3DriverTests_Streams: LiquidS3DriverTestCase {
 
         FileManager.default.createFile(atPath: filePath, contents: nil)
         let handle = FileHandle(forWritingAtPath: filePath)!
-        for try await buffer in os.download(key: key) {
+        for try await buffer in os.download(
+            key: key,
+            chunkSize: 5 * 1024 * 1024,
+            timeout: .seconds(30)
+        ) {
             handle.write(.init(buffer: buffer))
         }
         try handle.close()
@@ -44,7 +48,8 @@ final class LiquidS3DriverTests_Streams: LiquidS3DriverTestCase {
             key: key,
             buffer: .init(data: data1),
             uploadId: uploadId,
-            partNumber: 1
+            partNumber: 1,
+            timeout: .seconds(30)
         )
         
         try handle.seek(toOffset: UInt64(count))
@@ -53,7 +58,8 @@ final class LiquidS3DriverTests_Streams: LiquidS3DriverTestCase {
             key: key,
             buffer: .init(data: data2),
             uploadId: uploadId,
-            partNumber: 2
+            partNumber: 2,
+            timeout: .seconds(30)
         )
 
         let data = try Data(contentsOf: URL(fileURLWithPath: filePath))
@@ -68,7 +74,8 @@ final class LiquidS3DriverTests_Streams: LiquidS3DriverTestCase {
             chunks: [
                 chunk1,
                 chunk2,
-            ]
+            ],
+            timeout: .seconds(30)
         )
     }
     
@@ -112,7 +119,8 @@ final class LiquidS3DriverTests_Streams: LiquidS3DriverTestCase {
                 key: key,
                 buffer: .init(data: data),
                 uploadId: uploadId,
-                partNumber: Int(i + 1)
+                partNumber: Int(i + 1),
+                timeout: .minutes(10)
             )
             chunks.append(chunk)
         }
@@ -123,7 +131,8 @@ final class LiquidS3DriverTests_Streams: LiquidS3DriverTestCase {
             key: key,
             uploadId: uploadId,
             checksum: checksum,
-            chunks: chunks
+            chunks: chunks,
+            timeout: .seconds(30)
         )
     }
     

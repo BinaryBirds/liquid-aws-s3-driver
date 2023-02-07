@@ -24,7 +24,7 @@
       "location" : "https://github.com/binarybirds/liquid-kit",
       "state" : {
         "branch" : "dev",
-        "revision" : "c5624f46bcf2206e92fffbae0af943408d5066ba"
+        "revision" : "304f71479482331a9ab4621495944689a941bdd5"
       }
     },
     {
@@ -104,8 +104,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-http2.git",
       "state" : {
-        "revision" : "b408ca74bf24d13310da685bc340f149567c4ae2",
-        "version" : "1.24.0"
+        "revision" : "22757ac305f3d44d2b99ba541193ff1d64e77d00",
+        "version" : "1.24.1"
       }
     },
     {

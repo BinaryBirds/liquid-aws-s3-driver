@@ -20,12 +20,14 @@ final class LiquidS3DriverTests_Basics: LiquidS3DriverTestCase {
         try await os.upload(
             key: key,
             buffer: .init(string: contents),
-            checksum: nil
+            checksum: nil,
+            timeout: .seconds(30)
         )
         
         let buffer = try await os.download(
             key: key,
-            range: nil
+            range: nil,
+            timeout: .seconds(30)
         )
 
         guard let res = buffer.utf8String else {
@@ -47,12 +49,14 @@ final class LiquidS3DriverTests_Basics: LiquidS3DriverTestCase {
             sequence: stream,
             size: UInt(contents.count),
             key: key,
-            checksum: nil
+            checksum: nil,
+            timeout: .seconds(30)
         )
         
         let buffer = try await os.download(
             key: key,
-            range: nil
+            range: nil,
+            timeout: .seconds(30)
         )
 
         guard let res = buffer.utf8String else {
@@ -73,7 +77,8 @@ final class LiquidS3DriverTests_Basics: LiquidS3DriverTestCase {
         try await os.upload(
             key: key,
             buffer: .init(data: data),
-            checksum: checksum
+            checksum: checksum,
+            timeout: .seconds(30)
         )
     }
     
@@ -86,7 +91,8 @@ final class LiquidS3DriverTests_Basics: LiquidS3DriverTestCase {
             try await os.upload(
                 key: key,
                 buffer: .init(data: data),
-                checksum: "invalid"
+                checksum: "invalid",
+                timeout: .seconds(30)
             )
             XCTFail("Should fail with invalid checksum error.")
         }
@@ -114,7 +120,8 @@ final class LiquidS3DriverTests_Basics: LiquidS3DriverTestCase {
         try await os.upload(
             key: key2,
             buffer: .init(string: "test"),
-            checksum: nil
+            checksum: nil,
+            timeout: .seconds(30)
         )
 
         let res = try await os.list(key: "dir02")
@@ -137,7 +144,8 @@ final class LiquidS3DriverTests_Basics: LiquidS3DriverTestCase {
         try await os.upload(
             key: key,
             buffer: .init(string: "test"),
-            checksum: nil
+            checksum: nil,
+            timeout: .seconds(30)
         )
 
         let res = try await os.list(key: key)
@@ -149,7 +157,8 @@ final class LiquidS3DriverTests_Basics: LiquidS3DriverTestCase {
         try await os.upload(
             key: key,
             buffer: .init(string: "lorem ipsum"),
-            checksum: nil
+            checksum: nil,
+            timeout: .seconds(30)
         )
 
         let dest = "test-03.txt"
@@ -167,7 +176,8 @@ final class LiquidS3DriverTests_Basics: LiquidS3DriverTestCase {
         try await os.upload(
             key: key,
             buffer: .init(string: "dolor sit amet"),
-            checksum: nil
+            checksum: nil,
+            timeout: .seconds(30)
         )
 
         let dest = "test-05.txt"
@@ -187,12 +197,14 @@ final class LiquidS3DriverTests_Basics: LiquidS3DriverTestCase {
         try await os.upload(
             key: key,
             buffer: .init(string: contents),
-            checksum: nil
+            checksum: nil,
+            timeout: .seconds(30)
         )
         
         let buffer = try await os.download(
             key: key,
-            range: nil
+            range: nil,
+            timeout: .seconds(30)
         )
         guard let res = buffer.utf8String else {
             return XCTFail("Invalid byte buffer response data value.")
@@ -209,12 +221,14 @@ final class LiquidS3DriverTests_Basics: LiquidS3DriverTestCase {
         try await os.upload(
             key: key,
             buffer: .init(string: contents),
-            checksum: nil
+            checksum: nil,
+            timeout: .seconds(30)
         )
         
         let buffer = try await os.download(
             key: key,
-            range: range
+            range: range,
+            timeout: .seconds(30)
         )
         guard let res = buffer.utf8String else {
             return XCTFail("Invalid byte buffer response data value.")
