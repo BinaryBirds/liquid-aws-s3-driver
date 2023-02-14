@@ -95,6 +95,8 @@ extension S3ObjectStorage: ObjectStorage {
         }
     }
     
+    
+    
     ///
     /// Uploads a file using a key and a data object returning the resolved URL of the uploaded file
     ///
@@ -367,20 +369,17 @@ extension S3ObjectStorage: ObjectStorage {
 
     func download(
         key: String,
-        range: ClosedRange<UInt>?,
         chunkSize: UInt,
         timeout: TimeAmount
     ) -> AsyncThrowingStream<ByteBuffer, Error> {
         .init { c in
             Task {
                 do {
-                    let byteRange = range.map { "bytes=\($0.lowerBound)-\($0.upperBound)" }
                     let customS3 = s3.with(timeout: timeout)
                     _ = try await customS3.multipartDownload(
                         .init(
                             bucket: bucketName,
-                            key: key,
-                            range: byteRange
+                            key: key
                         ),
                         partSize: Int(chunkSize),
                         logger: context.logger,

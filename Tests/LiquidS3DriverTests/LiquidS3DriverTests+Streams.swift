@@ -22,7 +22,6 @@ final class LiquidS3DriverTests_Streams: LiquidS3DriverTestCase {
         let handle = FileHandle(forWritingAtPath: filePath)!
         for try await buffer in os.download(
             key: key,
-            range: nil,
             chunkSize: 5 * 1024 * 1024,
             timeout: .seconds(30)
         ) {

@@ -239,7 +239,6 @@ final class LiquidS3DriverTests_Basics: LiquidS3DriverTestCase {
     func testDownloadRangeStream() async throws {
         let key = "test-01.txt"
         let contents = "lorem ipsum dolor sit amet"
-        let range: ClosedRange<UInt> = 1...3
 
         try await os.upload(
             key: key,
@@ -247,9 +246,9 @@ final class LiquidS3DriverTests_Basics: LiquidS3DriverTestCase {
             checksum: nil,
             timeout: .seconds(30)
         )
+
         let stream = os.download(
             key: key,
-            range: range,
             chunkSize: 2,
             timeout: .seconds(30)
         )
