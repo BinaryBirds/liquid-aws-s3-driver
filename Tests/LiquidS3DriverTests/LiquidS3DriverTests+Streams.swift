@@ -22,6 +22,7 @@ final class LiquidS3DriverTests_Streams: LiquidS3DriverTestCase {
         let handle = FileHandle(forWritingAtPath: filePath)!
         for try await buffer in os.download(
             key: key,
+            range: nil,
             chunkSize: 5 * 1024 * 1024,
             timeout: .seconds(30)
         ) {
@@ -113,8 +114,6 @@ final class LiquidS3DriverTests_Streams: LiquidS3DriverTestCase {
                 data = try handle.read(upToCount: bufSize)!
             }
 
-            calculator.update(.init(data))
-
             let chunk = try await os.uploadMultipartChunk(
                 key: key,
                 buffer: .init(data: data),
@@ -123,6 +122,8 @@ final class LiquidS3DriverTests_Streams: LiquidS3DriverTestCase {
                 timeout: .minutes(10)
             )
             chunks.append(chunk)
+            
+            calculator.update(.init(data))
         }
         
         let checksum = calculator.finalize()
@@ -136,4 +137,63 @@ final class LiquidS3DriverTests_Streams: LiquidS3DriverTestCase {
         )
     }
     
+    func testLargeMultipartUploadStream() async throws {
+        let key = "test.avi"
+        let filePath = getAssetsPath() + key
+        
+        guard FileManager.default.fileExists(atPath: filePath) else {
+            return print("NOTICE: skipping large file multipart upload test...")
+        }
+
+        let handle = FileHandle(forReadingAtPath: filePath)!
+        let bufSize = 30 * 1024 * 1024 // x MB chunks
+        
+        let attr = try FileManager.default.attributesOfItem(atPath: filePath)
+        let fileSize = attr[FileAttributeKey.size] as! UInt64
+        var num = fileSize / UInt64(bufSize)
+        let rem = fileSize % UInt64(bufSize)
+        if rem > 0 {
+            num += 1
+        }
+
+        let uploadId = try await os.createMultipartUpload(key: key)
+
+        var chunks: [MultipartUpload.Chunk] = []
+        for i in 0..<num {
+            let data: Data
+            try handle.seek(toOffset: UInt64(bufSize) * i)
+            print(i, UInt64(bufSize) * i)
+
+            if i == num - 1 {
+                data = try handle.readToEnd()!
+            }
+            else {
+                data = try handle.read(upToCount: bufSize)!
+            }
+            
+            let stream: AsyncThrowingStream<ByteBuffer, Error> = .init { c in
+                c.yield(.init(data: data))
+                c.finish()
+            }
+
+            let chunk = try await os.uploadMultipartChunk(
+                key: key,
+                sequence: stream,
+                size: UInt(data.count),
+                uploadId: uploadId,
+                partNumber: Int(i + 1),
+                timeout: .minutes(10)
+            )
+            chunks.append(chunk)
+        }
+
+        try await os.completeMultipartUpload(
+            key: key,
+            uploadId: uploadId,
+            checksum: nil,
+            chunks: chunks,
+            timeout: .seconds(30)
+        )
+    }
+
 }

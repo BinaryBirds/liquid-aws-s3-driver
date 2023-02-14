@@ -22,10 +22,10 @@ struct S3ObjectStorageDriver: ObjectStorageDriver {
 
         self.client = AWSClient(
             credentialProvider: configuration.credentialProvider,
-            options: .init(
-                requestLogLevel: .notice,
-                errorLogLevel: .notice
-            ),
+//            options: .init(
+//                requestLogLevel: .notice,
+//                errorLogLevel: .notice
+//            ),
             httpClientProvider: .createNewWithEventLoopGroup(eventLoopGroup)
         )
     }

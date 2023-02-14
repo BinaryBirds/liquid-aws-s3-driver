@@ -175,6 +175,32 @@ extension S3ObjectStorage: ObjectStorage {
         }
         return .init(id: etag, number: partNumber)
     }
+        
+    func uploadMultipartChunk<T: AsyncSequence & Sendable>(
+        key: String,
+        sequence: T,
+        size: UInt,
+        uploadId: MultipartUpload.ID,
+        partNumber: Int,
+        timeout: TimeAmount
+    ) async throws -> MultipartUpload.Chunk where T.Element == ByteBuffer {
+        let customS3 = s3.with(timeout: timeout)
+        let res = try await customS3.uploadPart(
+            .init(
+                body: .asyncSequence(sequence, size: Int(size)),
+                bucket: bucketName,
+                key: key,
+                partNumber: partNumber,
+                uploadId: uploadId.value
+            ),
+            logger: context.logger,
+            on: context.eventLoop
+        )
+        guard let etag = res.eTag else {
+            throw ObjectStorageError.invalidResponse
+        }
+        return .init(id: etag, number: partNumber)
+    }
     
     func cancelMultipartUpload(
         key: String,
@@ -341,17 +367,20 @@ extension S3ObjectStorage: ObjectStorage {
 
     func download(
         key: String,
+        range: ClosedRange<UInt>?,
         chunkSize: UInt,
         timeout: TimeAmount
     ) -> AsyncThrowingStream<ByteBuffer, Error> {
         .init { c in
             Task {
                 do {
+                    let byteRange = range.map { "bytes=\($0.lowerBound)-\($0.upperBound)" }
                     let customS3 = s3.with(timeout: timeout)
                     _ = try await customS3.multipartDownload(
                         .init(
                             bucket: bucketName,
-                            key: key
+                            key: key,
+                            range: byteRange
                         ),
                         partSize: Int(chunkSize),
                         logger: context.logger,
