@@ -69,7 +69,15 @@ struct LiquidAwsS3Storage: FileStorage {
     // MARK: - api
 
     /// resolves a file location using a key and the public endpoint URL string
-    func resolve(key: String) -> String { publicEndpoint + "/" + key }
+    func resolve(key: String) -> String {
+        var key = key
+        if key.hasPrefix("/") {
+            key = String(key.dropFirst(1))
+        }
+        return publicEndpoint + "/" + String(key)
+            .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
+            .replacingOccurrences(of: "%20", with: "+")
+    }
     
     /// Uploads a file using a key and a data object returning the resolved URL of the uploaded file
     /// https://docs.aws.amazon.com/general/latest/gr/s3.html
@@ -83,7 +91,18 @@ struct LiquidAwsS3Storage: FileStorage {
 
     /// Create a directory structure for a given key
     func createDirectory(key: String) async throws {
-        _ = try await s3.putObject(S3.PutObjectRequest(acl: .publicRead, bucket: bucket, contentLength: 0, key: key)).get()
+        var key = key
+        if !key.hasSuffix("/") {
+            key = key + "/"
+        }
+        _ = try await s3.putObject(
+            S3.PutObjectRequest(
+                acl: .publicRead,
+                bucket: bucket,
+                contentLength: 0,
+                key: key
+            )
+        ).get()
     }
 
     /// List objects under a given key

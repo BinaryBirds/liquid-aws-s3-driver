@@ -110,6 +110,12 @@ final class LiquidAwsS3DriverTests: XCTestCase {
         XCTAssertEqual(keys2, ["dir03"])
     }
     
+    func testListUnderDir() async throws {
+        let key1 = "dir01/dir02/dir03/test.txt"
+        let data = Data("test".utf8)
+        _ = try await fs.upload(key: key1, data: data)
+    }
+    
     func testList() async throws {
         let key1 = "dir02/dir03"
         let _ = try await fs.createDirectory(key: key1)
