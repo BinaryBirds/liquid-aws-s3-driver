@@ -51,6 +51,10 @@ extension S3ObjectStorage: ObjectStorage {
     func createChecksumCalculator() -> ChecksumCalculator {
         CRC32()
     }
+    
+    func getAvailableSpace() -> UInt64 {
+        .max
+    }
 
     ///
     /// Resolves a file location using a key and the public endpoint URL string
