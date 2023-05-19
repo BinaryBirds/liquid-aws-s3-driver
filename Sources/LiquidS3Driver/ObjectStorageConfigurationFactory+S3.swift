@@ -19,7 +19,8 @@ public extension ObjectStorageConfigurationFactory {
         bucket: S3.Bucket,
         endpoint: String? = nil,
         publicEndpoint: String? = nil,
-        logLevel: Logger.Level = .notice
+        logLevel: Logger.Level = .notice,
+        logger: Logger = AWSClient.loggingDisabled
     ) -> ObjectStorageConfigurationFactory {
         .init {
             S3ObjectStorageConfiguration(
@@ -28,7 +29,8 @@ public extension ObjectStorageConfigurationFactory {
                 bucket: bucket,
                 endpoint: endpoint,
                 publicEndpoint: publicEndpoint,
-                logLevel: logLevel
+                logLevel: logLevel,
+                logger: logger
             )
         }
     }

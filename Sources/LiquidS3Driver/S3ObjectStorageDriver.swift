@@ -17,7 +17,8 @@ struct S3ObjectStorageDriver: ObjectStorageDriver {
     init(
         eventLoopGroup: EventLoopGroup,
         configuration: S3ObjectStorageConfiguration,
-        logLevel: Logger.Level = .notice
+        logLevel: Logger.Level = .notice,
+        logger: Logger = AWSClient.loggingDisabled
     ) {
         self.configuration = configuration
 
@@ -27,7 +28,8 @@ struct S3ObjectStorageDriver: ObjectStorageDriver {
                 requestLogLevel: logLevel,
                 errorLogLevel: logLevel
             ),
-            httpClientProvider: .createNewWithEventLoopGroup(eventLoopGroup)
+            httpClientProvider: .createNewWithEventLoopGroup(eventLoopGroup),
+            logger: logger
         )
     }
 

@@ -27,6 +27,9 @@ struct S3ObjectStorageConfiguration: ObjectStorageConfiguration {
     
     /// Custom log level for the AWS client
     let logLevel: Logger.Level
+    
+    /// custom logger
+    let logger: Logger
 
     ///
     /// Creates the driver factory
@@ -37,7 +40,8 @@ struct S3ObjectStorageConfiguration: ObjectStorageConfiguration {
         S3ObjectStorageDriver(
             eventLoopGroup: storages.eventLoopGroup,
             configuration: self,
-            logLevel: logLevel
+            logLevel: logLevel,
+            logger: logger
         )
     }
 }
