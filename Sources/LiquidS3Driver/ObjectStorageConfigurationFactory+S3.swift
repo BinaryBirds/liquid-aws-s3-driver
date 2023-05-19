@@ -18,7 +18,8 @@ public extension ObjectStorageConfigurationFactory {
         region: Region,
         bucket: S3.Bucket,
         endpoint: String? = nil,
-        publicEndpoint: String? = nil
+        publicEndpoint: String? = nil,
+        logLevel: Logger.Level = .notice
     ) -> ObjectStorageConfigurationFactory {
         .init {
             S3ObjectStorageConfiguration(
@@ -26,7 +27,8 @@ public extension ObjectStorageConfigurationFactory {
                 region: region,
                 bucket: bucket,
                 endpoint: endpoint,
-                publicEndpoint: publicEndpoint
+                publicEndpoint: publicEndpoint,
+                logLevel: logLevel
             )
         }
     }

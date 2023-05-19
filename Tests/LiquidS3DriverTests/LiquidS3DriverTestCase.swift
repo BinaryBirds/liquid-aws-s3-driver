@@ -69,7 +69,8 @@ open class LiquidS3DriverTestCase: XCTestCase {
                 region: .init(rawValue: env["REGION"] ?? ""),
                 bucket: .init(name: env["BUCKET"] ?? ""),
                 endpoint: env["ENDPOINT"],
-                publicEndpoint: env["PUBLIC_ENDPOINT"]
+                publicEndpoint: env["PUBLIC_ENDPOINT"],
+                logLevel: .trace
             ),
             as: .s3
         )
