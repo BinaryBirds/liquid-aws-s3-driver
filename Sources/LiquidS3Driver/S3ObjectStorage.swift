@@ -76,7 +76,6 @@ extension S3ObjectStorage: ObjectStorage {
             let customS3 = s3.with(timeout: timeout)
             _ = try await customS3.putObject(
                 .init(
-                    acl: .publicRead,
                     body: .asyncSequence(sequence, size: Int(size)),
                     bucket: bucketName,
                     checksumAlgorithm: (checksum != nil) ? .crc32 : .none,
@@ -114,7 +113,6 @@ extension S3ObjectStorage: ObjectStorage {
             let customS3 = s3.with(timeout: timeout)
             _ = try await customS3.putObject(
                 .init(
-                    acl: .publicRead,
                     body: .byteBuffer(buffer),
                     bucket: bucketName,
                     checksumAlgorithm: (checksum != nil) ? .crc32 : .none,
@@ -144,7 +142,6 @@ extension S3ObjectStorage: ObjectStorage {
     ) async throws -> MultipartUpload.ID {
         let res = try await s3.createMultipartUpload(
             .init(
-                acl: .publicRead,
                 bucket: bucketName,
                 key: key
             ),
@@ -270,7 +267,6 @@ extension S3ObjectStorage: ObjectStorage {
     ) async throws {
         _ = try await s3.putObject(
             .init(
-                acl: .publicRead,
                 bucket: bucketName,
                 contentLength: 0,
                 key: key
@@ -317,7 +313,6 @@ extension S3ObjectStorage: ObjectStorage {
         }
         _ = try await s3.copyObject(
             .init(
-                acl: .publicRead,
                 bucket: bucketName,
                 copySource: bucketName + "/" + source,
                 key: destination
